@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 
-import LandingEditor from './LandingEditor'
+import LandingEditor from './components/LandingEditor'
 
 export default function App() {
   const [credentials, setCredentials] = useState({ username: '', password: '' })
