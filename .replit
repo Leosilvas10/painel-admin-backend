@@ -13,6 +13,7 @@ language = "nodejs"
 deploymentTarget = "static"
 build = ["npm", "run", "build"]
 publicDir = "dist"
+run = ["sh", "-c", "node server/start.js"]
 
 [[ports]]
 localPort = 5000
