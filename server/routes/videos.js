@@ -77,6 +77,37 @@ router.post('/', authMiddleware, upload.single('video'), (req, res) => {
   }
 });
 
+// Deletar vídeo
+router.delete('/:id', authMiddleware, (req, res) => {
+  try {
+    const videos = readData('videos');
+    const videoIndex = videos.findIndex(v => v.id === req.params.id);
+    
+    if (videoIndex === -1) {
+      return res.status(404).json({ error: 'Vídeo não encontrado' });
+    }
+    
+    const video = videos[videoIndex];
+    
+    // Deletar arquivo físico
+    const filePath = path.join(process.cwd(), 'server/uploads/videos', video.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    
+    videos.splice(videoIndex, 1);
+    writeData('videos', videos);
+    
+    res.json({ message: 'Vídeo deletado com sucesso' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao deletar vídeo' });
+  }
+});
+
+export default router; });
+  }
+});
+
 // Obter vídeo específico
 router.get('/:id', authMiddleware, (req, res) => {
   try {

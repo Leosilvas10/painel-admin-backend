@@ -143,3 +143,82 @@ router.delete('/:id', authMiddleware, (req, res) => {
 });
 
 export default router;
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import { authMiddleware } from '../middleware/auth.js';
+import { readData, writeData } from '../data/store.js';
+
+const router = express.Router();
+
+// Listar usuários
+router.get('/', authMiddleware, (req, res) => {
+  try {
+    const users = readData('users');
+    const usersWithoutPassword = users.map(user => {
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
+    res.json(usersWithoutPassword);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao listar usuários' });
+  }
+});
+
+// Criar usuário
+router.post('/', authMiddleware, async (req, res) => {
+  try {
+    const users = readData('users');
+    const { username, email, password, role } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Username, email e senha são obrigatórios' });
+    }
+
+    // Verificar se usuário já existe
+    const existingUser = users.find(u => u.username === username || u.email === email);
+    if (existingUser) {
+      return res.status(400).json({ error: 'Usuário já existe' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const userData = {
+      id: Date.now().toString(),
+      username,
+      email,
+      password: hashedPassword,
+      role: role || 'user',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    users.push(userData);
+    writeData('users', users);
+
+    const { password: _, ...userWithoutPassword } = userData;
+    res.json({ message: 'Usuário criado com sucesso', user: userWithoutPassword });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao criar usuário' });
+  }
+});
+
+// Deletar usuário
+router.delete('/:id', authMiddleware, (req, res) => {
+  try {
+    const users = readData('users');
+    const userIndex = users.findIndex(u => u.id === req.params.id);
+    
+    if (userIndex === -1) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+    
+    users.splice(userIndex, 1);
+    writeData('users', users);
+    
+    res.json({ message: 'Usuário deletado com sucesso' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao deletar usuário' });
+  }
+});
+
+export default router;

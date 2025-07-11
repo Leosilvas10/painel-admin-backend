@@ -59,10 +59,13 @@ export const initializeData = async () => {
       };
       writeData('users', [defaultUser]);
       console.log('✅ Usuário admin padrão criado');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao criar usuário admin:', error);riado');
     }
 
     // Inicializar outros tipos de dados se não existirem
-    const dataTypes = ['videos', 'images', 'content', 'blocks', 'settings', 'forms', 'logo'];
+    const dataTypes = ['videos', 'images', 'contents', 'blocks', 'settings', 'forms', 'logos'];
     dataTypes.forEach(type => {
       if (readData(type).length === 0) {
         writeData(type, []);
@@ -72,5 +75,7 @@ export const initializeData = async () => {
     console.log('✅ Dados inicializados com sucesso');
   } catch (error) {
     console.error('❌ Erro ao inicializar dados:', error);
+  }
+};s:', error);
   }
 };
