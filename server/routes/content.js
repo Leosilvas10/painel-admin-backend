@@ -1,4 +1,3 @@
-
 import express from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { readData, writeData } from '../data/store.js';
@@ -84,59 +83,6 @@ router.put('/:id', authMiddleware, (req, res) => {
     writeData('content', content);
 
     res.json({ message: 'Conteúdo atualizado com sucesso', content: updatedContent });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao atualizar conteúdo' });
-  }
-});
-
-// Deletar conteúdo
-router.delete('/:id', authMiddleware, (req, res) => {
-  try {
-    const content = readData('content');
-    const contentIndex = content.findIndex((c) => c.id === req.params.id);
-
-    if (contentIndex === -1) {
-      return res.status(404).json({ error: 'Conteúdo não encontrado' });
-    }
-
-    content.splice(contentIndex, 1);
-    writeData('content', content);
-
-    res.json({ message: 'Conteúdo deletado com sucesso' });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao deletar conteúdo' });
-  }
-});
-
-export default router' });
-  }
-});
-
-// Atualizar conteúdo
-router.put('/:id', authMiddleware, (req, res) => {
-  try {
-    const content = readData('content');
-    const contentIndex = content.findIndex((c) => c.id === req.params.id);
-
-    if (contentIndex === -1) {
-      return res.status(404).json({ error: 'Conteúdo não encontrado' });
-    }
-
-    const { title, type, data, active } = req.body;
-    content[contentIndex] = {
-      ...content[contentIndex],
-      title: title || content[contentIndex].title,
-      type: type || content[contentIndex].type,
-      data: data || content[contentIndex].data,
-      active: active !== undefined ? active : content[contentIndex].active,
-      updatedAt: new Date().toISOString(),
-    };
-
-    writeData('content', content);
-    res.json({
-      message: 'Conteúdo atualizado com sucesso',
-      content: content[contentIndex],
-    });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao atualizar conteúdo' });
   }
