@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -6,16 +5,17 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
 
-const authRoutes = require('./routes/auth');
-const logoRoutes = require('./routes/logo');
-const videoRoutes = require('./routes/videos');
-const contentRoutes = require('./routes/content');
-const blockRoutes = require('./routes/blocks');
-const settingsRoutes = require('./routes/settings');
-const imageRoutes = require('./routes/images');
-const formRoutes = require('./routes/forms');
-const userRoutes = require('./routes/users');
-const dashboardRoutes = require('./routes/dashboard');
+// Importar rotas
+import authRoutes from './routes/auth.js';
+import logoRoutes from './routes/logo.js';
+import videoRoutes from './routes/videos.js';
+import contentRoutes from './routes/content.js';
+import blockRoutes from './routes/blocks.js';
+import settingsRoutes from './routes/settings.js';
+import imageRoutes from './routes/images.js';
+import formRoutes from './routes/forms.js';
+import userRoutes from './routes/users.js';
+import dashboardRoutes from './routes/dashboard.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;

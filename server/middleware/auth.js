@@ -1,5 +1,5 @@
 
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'admin_secret_key_change_in_production';
 
@@ -19,4 +19,4 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-module.exports = { authMiddleware, JWT_SECRET };
+export { authMiddleware, JWT_SECRET };

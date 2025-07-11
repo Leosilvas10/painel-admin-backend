@@ -1,8 +1,8 @@
 
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { authMiddleware, JWT_SECRET } = require('../middleware/auth');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { authMiddleware, JWT_SECRET } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -10,7 +10,7 @@ const router = express.Router();
 const ADMIN_USER = {
   id: 1,
   username: 'admin',
-  password: '$2a$10$rOzJqZZqZqZqZqZqZqZqZu' // senha: admin123 (hash bcrypt)
+  password: '$2a$10$Hw6hhzYZmZ8zP8Zx8Zx8ZOYKYp4P5p5p5p5p5p5p5p5p5p5p5p5p5p5'
 };
 
 // Login
@@ -26,9 +26,8 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
-    // Para simplificar, vamos usar uma verificação simples
-    // Em produção, use bcrypt.compare
-    const isValidPassword = password === 'admin123';
+    // Usar bcrypt para validar a senha
+    const isValidPassword = await bcrypt.compare(password, ADMIN_USER.password);
     
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
@@ -60,4 +59,4 @@ router.get('/me', authMiddleware, (req, res) => {
   res.json({ user: req.user });
 });
 
-module.exports = router;
+export default router;
