@@ -1,3 +1,4 @@
+
 import express from "express";
 import multer from "multer";
 import path from "path";
@@ -62,9 +63,8 @@ router.post("/upload", authMiddleware, upload.single("video"), (req, res) => {
       originalName: req.file.originalname,
       path: `/uploads/videos/${req.file.filename}`,
       size: req.file.size,
+      mimetype: req.file.mimetype,
       uploadedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
 
     videos.push(videoData);

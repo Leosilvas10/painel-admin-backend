@@ -1,10 +1,10 @@
+
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
+import { initializeData } from './data/store.js';
 
 // Importar rotas
 import authRoutes from './routes/auth.js';
@@ -22,33 +22,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Middleware de segurança
-app.use(helmet());
-
-// Configuração CORS mais específica
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:5000',
-    'https://workspace.replit.dev',
-    'https://workspace.replit.app'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100 // máximo 100 requests por IP
-});
-app.use('/api/', limiter);
-
-// Middleware para parsing JSON
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// Middlewares
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Servir arquivos estáticos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -105,4 +84,20 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Rota não encontrada' });
 });
 
+// Inicializar dados e iniciar servidor
+const startServer = async () => {
+  try {
+    await initializeData();
+    
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Servidor rodando na porta ${PORT}`);
+      console.log(`📡 API disponível em http://localhost:${PORT}/api`);
+    });
+  } catch (error) {
+    console.error('❌ Erro ao iniciar servidor:', error);
+    process.exit(1);
+  }
+};
+
 export default app;
+export { startServer };
