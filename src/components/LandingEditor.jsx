@@ -58,6 +58,44 @@ const LandingEditor = () => {
     }
   };
 
+  // Deletar landing page
+  const deleteLandingData = async () => {
+    if (!window.confirm('⚠️ Tem certeza que deseja deletar a landing page "Banco Jota"? Esta ação não pode ser desfeita!')) {
+      return;
+    }
+
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const response = await fetch(`${API_BASE}/content/landing/banco-jota`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setMessage('✅ Landing page deletada com sucesso!');
+        // Resetar os dados do formulário
+        setLandingData({
+          title: '',
+          subtitle: '',
+          cta: '',
+          description: ''
+        });
+      } else {
+        setMessage('❌ Erro ao deletar: ' + result.error);
+      }
+    } catch (error) {
+      setMessage('❌ Erro de conexão: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Carregar dados ao montar componente
   useEffect(() => {
     fetchLandingData();
@@ -178,10 +216,27 @@ const LandingEditor = () => {
             border: 'none',
             borderRadius: '5px',
             fontSize: '16px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            marginRight: '10px'
           }}
         >
           🔄 Recarregar
+        </button>
+
+        <button
+          onClick={deleteLandingData}
+          disabled={loading}
+          style={{
+            background: loading ? '#ccc' : '#dc3545',
+            color: 'white',
+            padding: '12px 24px',
+            border: 'none',
+            borderRadius: '5px',
+            fontSize: '16px',
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {loading ? 'Deletando...' : '🗑️ Deletar Landing'}
         </button>
       </div>
 
