@@ -1,44 +1,44 @@
-import express from 'express';
-import { authMiddleware } from '../middleware/auth.js';
-import { readData, writeData } from '../data/store.js';
+import express from "express";
+import { authMiddleware } from "../middleware/auth.js";
+import { readData, writeData } from "../data/store.js";
 
 const router = express.Router();
 
 // Obter configurações
-router.get('/', authMiddleware, (req, res) => {
+router.get("/", authMiddleware, (req, res) => {
   try {
-    const settings = readData('settings');
+    const settings = readData("settings");
     const currentSettings = settings[0] || {
-      siteName: 'Meu Site',
-      siteDescription: 'Descrição do site',
-      contactEmail: 'contato@meusite.com',
+      siteName: "Meu Site",
+      siteDescription: "Descrição do site",
+      contactEmail: "contato@meusite.com",
       socialMedia: {
-        facebook: '',
-        instagram: '',
-        twitter: '',
-        linkedin: ''
+        facebook: "",
+        instagram: "",
+        twitter: "",
+        linkedin: "",
       },
       seo: {
-        metaTitle: '',
-        metaDescription: '',
-        keywords: ''
-      }
+        metaTitle: "",
+        metaDescription: "",
+        keywords: "",
+      },
     };
 
     res.json(currentSettings);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter configurações' });
+    res.status(500).json({ error: "Erro ao obter configurações" });
   }
 });
 
 // Atualizar configurações
-router.put('/', authMiddleware, (req, res) => {
+router.put("/", authMiddleware, (req, res) => {
   try {
-    const settings = readData('settings');
+    const settings = readData("settings");
     const newSettings = {
-      id: '1',
+      id: "1",
       ...req.body,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     if (settings.length === 0) {
@@ -48,11 +48,14 @@ router.put('/', authMiddleware, (req, res) => {
       settings[0] = { ...settings[0], ...newSettings };
     }
 
-    writeData('settings', settings);
-    res.json({ message: 'Configurações atualizadas com sucesso', settings: settings[0] });
+    writeData("settings", settings);
+    res.json({
+      message: "Configurações atualizadas com sucesso",
+      settings: settings[0],
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao atualizar configurações' });
+    res.status(500).json({ error: "Erro ao atualizar configurações" });
   }
 });
 
-export default router;ault router;
+export default router;

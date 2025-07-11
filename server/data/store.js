@@ -1,12 +1,12 @@
-import fs from 'fs';
-import path from 'path';
-import bcrypt from 'bcryptjs';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import bcrypt from "bcryptjs";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DATA_DIR = path.join(__dirname, 'json');
+const DATA_DIR = path.join(__dirname, "json");
 
 // Criar diretório de dados se não existir
 if (!fs.existsSync(DATA_DIR)) {
@@ -20,7 +20,7 @@ export const readData = (type) => {
     if (!fs.existsSync(filePath)) {
       return [];
     }
-    const data = fs.readFileSync(filePath, 'utf8');
+    const data = fs.readFileSync(filePath, "utf8");
     return JSON.parse(data);
   } catch (error) {
     console.error(`Erro ao ler ${type}:`, error);
@@ -44,37 +44,40 @@ export const writeData = (type, data) => {
 export const initializeData = async () => {
   try {
     // Criar usuário admin padrão se não existir
-    const users = readData('users');
+    const users = readData("users");
     if (users.length === 0) {
-      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const hashedPassword = await bcrypt.hash("admin123", 10);
       const defaultUser = {
-        id: '1',
-        username: 'admin',
-        email: 'admin@admin.com',
+        id: "1",
+        username: "admin",
+        email: "admin@admin.com",
         password: hashedPassword,
-        role: 'admin',
+        role: "admin",
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
-      writeData('users', [defaultUser]);
-      console.log('✅ Usuário admin padrão criado');
-      }
-    } catch (error) {
-      console.error('❌ Erro ao criar usuário admin:', error);
+      writeData("users", [defaultUser]);
+      console.log("✅ Usuário admin padrão criado");
     }
 
     // Inicializar outros tipos de dados se não existirem
-    const dataTypes = ['videos', 'images', 'contents', 'blocks', 'settings', 'forms', 'logos'];
-    dataTypes.forEach(type => {
+    const dataTypes = [
+      "videos",
+      "images",
+      "contents",
+      "blocks",
+      "settings",
+      "forms",
+      "logos",
+    ];
+    dataTypes.forEach((type) => {
       if (readData(type).length === 0) {
         writeData(type, []);
       }
     });
 
-    console.log('✅ Dados inicializados com sucesso');
+    console.log("✅ Dados inicializados com sucesso");
   } catch (error) {
-    console.error('❌ Erro ao inicializar dados:', error);
-  }
-};s:', error);
+    console.error("❌ Erro ao inicializar dados:", error);
   }
 };
