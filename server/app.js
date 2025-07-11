@@ -104,8 +104,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Rota 404
-app.use('/*splat', (req, res) => {
+// Rota 404 - deve vir por último
+app.use('*', (req, res) => {
   res.status(404).json({ error: 'Rota não encontrada' });
 });
 
