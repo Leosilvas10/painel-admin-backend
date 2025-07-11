@@ -1,3 +1,4 @@
+
 import express from "express";
 import multer from "multer";
 import path from "path";
@@ -48,25 +49,23 @@ router.get("/", authMiddleware, (req, res) => {
 router.post("/upload", authMiddleware, upload.single("image"), (req, res) => {
   try {
     if (!req.file) {
-      return res
-        .status(400)
-        .json({ error: "Nenhum arquivo de imagem enviado" });
+      return res.status(400).json({ error: "Nenhum arquivo de imagem enviado" });
     }
 
     const images = readData("images");
-    const { title, description } = req.body;
+    const { title, description, alt } = req.body;
 
     const imageData = {
       id: Date.now().toString(),
       title: title || req.file.originalname,
       description: description || "",
+      alt: alt || title || req.file.originalname,
       filename: req.file.filename,
       originalName: req.file.originalname,
       path: `/uploads/images/${req.file.filename}`,
       size: req.file.size,
+      mimetype: req.file.mimetype,
       uploadedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
 
     images.push(imageData);
@@ -104,11 +103,12 @@ router.put("/:id", authMiddleware, (req, res) => {
       return res.status(404).json({ error: "Imagem não encontrada" });
     }
 
-    const { title, description } = req.body;
+    const { title, description, alt } = req.body;
     images[imageIndex] = {
       ...images[imageIndex],
       title: title || images[imageIndex].title,
       description: description || images[imageIndex].description,
+      alt: alt || images[imageIndex].alt,
       updatedAt: new Date().toISOString(),
     };
 
