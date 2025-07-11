@@ -52,17 +52,18 @@ router.post('/', authMiddleware, upload.single('video'), (req, res) => {
       return res.status(400).json({ error: 'Nenhum arquivo de vídeo enviado' });
     }
 
-    const { title, description } = req.body;
     const videos = readData('videos');
+    const { title, description } = req.body;
 
     const videoData = {
       id: Date.now().toString(),
-      title: title || 'Vídeo sem título',
+      title: title || req.file.originalname,
       description: description || '',
       filename: req.file.filename,
       originalName: req.file.originalname,
       path: `/uploads/videos/${req.file.filename}`,
       size: req.file.size,
+      uploadedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
