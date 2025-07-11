@@ -13,6 +13,9 @@ const contentRoutes = require('./routes/content');
 const blockRoutes = require('./routes/blocks');
 const settingsRoutes = require('./routes/settings');
 const imageRoutes = require('./routes/images');
+const formRoutes = require('./routes/forms');
+const userRoutes = require('./routes/users');
+const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,6 +54,9 @@ app.use('/api/content', contentRoutes);
 app.use('/api/blocks', blockRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/images', imageRoutes);
+app.use('/api/forms', formRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Middleware de tratamento de erros
 app.use((err, req, res, next) => {

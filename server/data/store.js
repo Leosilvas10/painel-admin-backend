@@ -21,6 +21,10 @@ const defaultData = {
   blocks: [],
   videos: [],
   images: [],
+  forms: [],
+  users: [],
+  submissions: [],
+  logo: {},
   sections: {
     hero: {
       title: "Realize o Sonho da Casa Própria",
