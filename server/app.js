@@ -44,12 +44,33 @@ uploadDirs.forEach(dir => {
   }
 });
 
-// Health check endpoint
+// Rota de health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Backend está funcionando!',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Rota de teste para debug
+app.get('/api', (req, res) => {
+  res.json({ 
+    message: 'API está funcionando!',
+    rotas_disponiveis: [
+      'POST /api/auth/login',
+      'GET /api/auth/verify',
+      'GET /api/health',
+      'GET /api/logo',
+      'GET /api/settings',
+      'GET /api/users',
+      'GET /api/dashboard',
+      'GET /api/images',
+      'GET /api/videos',
+      'GET /api/content',
+      'GET /api/blocks',
+      'GET /api/forms'
+    ]
   });
 });
 
