@@ -1,4 +1,3 @@
-
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -11,26 +10,34 @@ const router = express.Router();
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    
+
     if (!username || !password) {
-      return res.status(400).json({ error: 'Username e senha são obrigatórios' });
+      return res.status(400).json({ error: 'Username e password são obrigatórios' });
     }
-    
+
     const users = readData('users');
-    const user = users.find(u => u.username === username);
-    
+    const user = users.find(u => u.username === username || u.email === username);
+
     if (!user) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
-    
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    
-    if (!isValidPassword) {
+
+    // Para o usuário admin padrão, verificar senha diretamente se não estiver hasheada
+    let isPasswordValid = false;
+    if (user.password.startsWith('$2')) {
+      // Senha já está hasheada
+      isPasswordValid = await bcrypt.compare(password, user.password);
+    } else {
+      // Senha não hasheada (usuário padrão), comparar diretamente
+      isPasswordValid = password === user.password;
+    }
+
+    if (!isPasswordValid) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
-    
+
     const token = generateToken(user.id);
-    
+
     res.json({
       message: 'Login realizado com sucesso',
       token,
@@ -42,29 +49,30 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ error: 'Erro no servidor' });
+    console.error('Erro no login:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 
 // Verificar token
 router.get('/verify', (req, res) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
-  
+
   if (!token) {
     return res.status(401).json({ error: 'Token não fornecido' });
   }
-  
+
   try {
     const JWT_SECRET = process.env.JWT_SECRET || 'sua-chave-secreta-super-secreta';
     const decoded = jwt.verify(token, JWT_SECRET);
-    
+
     const users = readData('users');
     const user = users.find(u => u.id === decoded.userId);
-    
+
     if (!user) {
       return res.status(401).json({ error: 'Usuário não encontrado' });
     }
-    
+
     res.json({
       valid: true,
       user: {
