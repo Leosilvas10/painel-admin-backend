@@ -1,4 +1,8 @@
 
 import { startServer } from './app.js';
 
-startServer();
+console.log('🔄 Iniciando servidor...');
+startServer().catch(error => {
+  console.error('❌ Erro fatal:', error);
+  process.exit(1);
+});

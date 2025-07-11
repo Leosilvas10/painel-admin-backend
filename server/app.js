@@ -24,7 +24,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'https://painel-admin-backend-leonardosilvas2.replit.app'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -91,7 +96,8 @@ const startServer = async () => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
       console.log(`📡 API disponível em http://localhost:${PORT}/api`);
-      console.log(`🌐 Acesso externo: https://${process.env.REPL_SLUG || 'localhost'}.${process.env.REPL_OWNER || 'localhost'}.replit.app/api`);
+      console.log(`🌐 Acesso externo: https://${process.env.REPL_SLUG || 'painel-admin-backend'}-${process.env.REPL_OWNER || 'leonardosilvas2'}.replit.app/api`);
+      console.log(`🔗 URL de produção: https://painel-admin-backend-leonardosilvas2.replit.app/api`);
     });
   } catch (error) {
     console.error('❌ Erro ao iniciar servidor:', error);
