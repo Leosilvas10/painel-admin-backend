@@ -22,9 +22,10 @@ router.post('/', authMiddleware, (req, res) => {
 
     const formData = {
       id: Date.now().toString(),
-      name,
+      name: name || 'Formulário sem nome',
       fields: fields || [],
-      settings: settings || { enabled: true },
+      settings: settings || {},
+      submissions: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -35,6 +36,67 @@ router.post('/', authMiddleware, (req, res) => {
     res.json({ message: 'Formulário criado com sucesso', form: formData });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao criar formulário' });
+  }
+});
+
+// Obter formulário por ID
+router.get('/:id', authMiddleware, (req, res) => {
+  try {
+    const forms = readData('forms');
+    const form = forms.find(f => f.id === req.params.id);
+
+    if (!form) {
+      return res.status(404).json({ error: 'Formulário não encontrado' });
+    }
+
+    res.json(form);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao obter formulário' });
+  }
+});
+
+// Atualizar formulário
+router.put('/:id', authMiddleware, (req, res) => {
+  try {
+    const forms = readData('forms');
+    const formIndex = forms.findIndex(f => f.id === req.params.id);
+
+    if (formIndex === -1) {
+      return res.status(404).json({ error: 'Formulário não encontrado' });
+    }
+
+    const { name, fields, settings } = req.body;
+    forms[formIndex] = {
+      ...forms[formIndex],
+      name: name || forms[formIndex].name,
+      fields: fields || forms[formIndex].fields,
+      settings: settings || forms[formIndex].settings,
+      updatedAt: new Date().toISOString()
+    };
+
+    writeData('forms', forms);
+    res.json({ message: 'Formulário atualizado com sucesso', form: forms[formIndex] });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao atualizar formulário' });
+  }
+});
+
+// Deletar formulário
+router.delete('/:id', authMiddleware, (req, res) => {
+  try {
+    const forms = readData('forms');
+    const formIndex = forms.findIndex(f => f.id === req.params.id);
+
+    if (formIndex === -1) {
+      return res.status(404).json({ error: 'Formulário não encontrado' });
+    }
+
+    forms.splice(formIndex, 1);
+    writeData('forms', forms);
+
+    res.json({ message: 'Formulário deletado com sucesso' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao deletar formulário' });
   }
 });
 
@@ -78,69 +140,6 @@ router.get('/:id/submissions', authMiddleware, (req, res) => {
     res.json(formSubmissions);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao obter submissões' });
-  }
-});
-
-// Obter formulário específico
-router.get('/:id', authMiddleware, (req, res) => {
-  try {
-    const forms = readData('forms');
-    const form = forms.find(f => f.id === req.params.id);
-    
-    if (!form) {
-      return res.status(404).json({ error: 'Formulário não encontrado' });
-    }
-    
-    res.json(form);
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter formulário' });
-  }
-});
-
-// Atualizar formulário
-router.put('/:id', authMiddleware, (req, res) => {
-  try {
-    const forms = readData('forms');
-    const formIndex = forms.findIndex(f => f.id === req.params.id);
-    
-    if (formIndex === -1) {
-      return res.status(404).json({ error: 'Formulário não encontrado' });
-    }
-
-    forms[formIndex] = {
-      ...forms[formIndex],
-      ...req.body,
-      id: req.params.id, // Manter o ID original
-      updatedAt: new Date().toISOString()
-    };
-
-    writeData('forms', forms);
-    
-    res.json({
-      message: 'Formulário atualizado com sucesso',
-      form: forms[formIndex]
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao atualizar formulário' });
-  }
-});
-
-// Excluir formulário
-router.delete('/:id', authMiddleware, (req, res) => {
-  try {
-    const forms = readData('forms');
-    const formIndex = forms.findIndex(f => f.id === req.params.id);
-    
-    if (formIndex === -1) {
-      return res.status(404).json({ error: 'Formulário não encontrado' });
-    }
-
-    forms.splice(formIndex, 1);
-    writeData('forms', forms);
-
-    res.json({ message: 'Formulário excluído com sucesso' });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao excluir formulário' });
   }
 });
 

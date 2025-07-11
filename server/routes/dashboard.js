@@ -7,44 +7,22 @@ const router = express.Router();
 // Obter estatísticas do dashboard
 router.get('/stats', authMiddleware, (req, res) => {
   try {
+    const users = readData('users');
     const videos = readData('videos');
     const images = readData('images');
+    const content = readData('content');
     const blocks = readData('blocks');
     const forms = readData('forms');
-    const submissions = readData('submissions');
-    const users = readData('users');
 
-    // Calcular estatísticas
     const stats = {
-      content: {
-        videos: videos.length,
-        images: images.length,
-        blocks: blocks.length,
-        enabledBlocks: blocks.filter(b => b.enabled).length
-      },
-      forms: {
-        total: forms.length,
-        active: forms.filter(f => f.settings?.enabled).length,
-        totalSubmissions: submissions.length,
-        recentSubmissions: submissions.filter(s => {
-          const submissionDate = new Date(s.submittedAt);
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          return submissionDate > weekAgo;
-        }).length
-      },
-      users: {
-        total: users.length,
-        active: users.filter(u => u.status === 'active').length,
-        admins: users.filter(u => u.role === 'admin').length,
-        editors: users.filter(u => u.role === 'editor').length
-      },
-      storage: {
-        videosSize: videos.reduce((total, video) => total + (video.size || 0), 0),
-        imagesSize: images.reduce((total, image) => total + (image.size || 0), 0),
-        totalSize: videos.reduce((total, video) => total + (video.size || 0), 0) + 
+      users: users.length,
+      videos: videos.length,
+      images: images.length,
+      content: content.length,
+      blocks: blocks.length,
+      forms: forms.length,
+      totalStorage: videos.reduce((total, video) => total + (video.size || 0), 0) +
                    images.reduce((total, image) => total + (image.size || 0), 0)
-      }
     };
 
     res.json(stats);
@@ -56,57 +34,50 @@ router.get('/stats', authMiddleware, (req, res) => {
 // Obter atividades recentes
 router.get('/activities', authMiddleware, (req, res) => {
   try {
-    const submissions = readData('submissions');
-    const videos = readData('videos');
-    const images = readData('images');
-    const blocks = readData('blocks');
-
     const activities = [];
 
-    // Últimas submissões de formulários
-    submissions.slice(-5).forEach(submission => {
+    // Buscar atividades recentes de diferentes tipos
+    const videos = readData('videos').slice(-5);
+    const images = readData('images').slice(-5);
+    const content = readData('content').slice(-5);
+
+    videos.forEach(video => {
       activities.push({
-        type: 'form_submission',
-        message: 'Nova submissão de formulário recebida',
-        timestamp: submission.submittedAt,
-        data: { formId: submission.formId }
+        id: `video-${video.id}`,
+        type: 'video',
+        action: 'upload',
+        description: `Vídeo "${video.title}" foi enviado`,
+        timestamp: video.createdAt,
+        user: 'admin'
       });
     });
 
-    // Últimos uploads de vídeos
-    videos.slice(-3).forEach(video => {
+    images.forEach(image => {
       activities.push({
-        type: 'video_upload',
-        message: `Vídeo "${video.title}" foi enviado`,
-        timestamp: video.uploadedAt,
-        data: { videoId: video.id }
+        id: `image-${image.id}`,
+        type: 'image',
+        action: 'upload',
+        description: `Imagem "${image.title}" foi enviada`,
+        timestamp: image.createdAt,
+        user: 'admin'
       });
     });
 
-    // Últimos uploads de imagens
-    images.slice(-3).forEach(image => {
+    content.forEach(item => {
       activities.push({
-        type: 'image_upload',
-        message: `Imagem "${image.originalName}" foi enviada`,
-        timestamp: image.uploadedAt,
-        data: { imageId: image.id }
+        id: `content-${item.id}`,
+        type: 'content',
+        action: 'create',
+        description: `Conteúdo "${item.title}" foi criado`,
+        timestamp: item.createdAt,
+        user: 'admin'
       });
     });
 
-    // Últimas atualizações de blocos
-    blocks.filter(b => b.updatedAt !== b.createdAt).slice(-3).forEach(block => {
-      activities.push({
-        type: 'block_update',
-        message: `Bloco "${block.id}" foi atualizado`,
-        timestamp: block.updatedAt,
-        data: { blockId: block.id }
-      });
-    });
-
-    // Ordenar por timestamp (mais recente primeiro)
+    // Ordenar por data mais recente
     activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-    res.json(activities.slice(0, 10)); // Retornar apenas os 10 mais recentes
+    res.json(activities.slice(0, 10)); // Retornar apenas as 10 mais recentes
   } catch (error) {
     res.status(500).json({ error: 'Erro ao obter atividades' });
   }

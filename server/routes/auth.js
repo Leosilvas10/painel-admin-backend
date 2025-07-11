@@ -1,6 +1,7 @@
 
 import express from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { readData, writeData } from '../data/store.js';
 import { generateToken } from '../middleware/auth.js';
 
@@ -54,7 +55,6 @@ router.get('/verify', (req, res) => {
   }
   
   try {
-    const jwt = require('jsonwebtoken');
     const JWT_SECRET = process.env.JWT_SECRET || 'sua-chave-secreta-super-secreta';
     const decoded = jwt.verify(token, JWT_SECRET);
     

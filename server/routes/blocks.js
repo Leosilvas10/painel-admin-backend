@@ -1,3 +1,4 @@
+
 import express from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { readData, writeData } from '../data/store.js';
@@ -5,7 +6,7 @@ import { readData, writeData } from '../data/store.js';
 const router = express.Router();
 
 // Listar blocos
-router.get('/', (req, res) => {
+router.get('/', authMiddleware, (req, res) => {
   try {
     const blocks = readData('blocks');
     res.json(blocks);
@@ -17,15 +18,15 @@ router.get('/', (req, res) => {
 // Criar bloco
 router.post('/', authMiddleware, (req, res) => {
   try {
-    const { type, content, enabled, order } = req.body;
+    const { title, content, type, position } = req.body;
     const blocks = readData('blocks');
 
     const blockData = {
       id: Date.now().toString(),
-      type,
-      content,
-      enabled: enabled !== undefined ? enabled : true,
-      order: order || blocks.length,
+      title: title || 'Bloco sem título',
+      content: content || '',
+      type: type || 'text',
+      position: position || 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -39,26 +40,42 @@ router.post('/', authMiddleware, (req, res) => {
   }
 });
 
+// Obter bloco por ID
+router.get('/:id', authMiddleware, (req, res) => {
+  try {
+    const blocks = readData('blocks');
+    const block = blocks.find(b => b.id === req.params.id);
+    
+    if (!block) {
+      return res.status(404).json({ error: 'Bloco não encontrado' });
+    }
+    
+    res.json(block);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao obter bloco' });
+  }
+});
+
 // Atualizar bloco
 router.put('/:id', authMiddleware, (req, res) => {
   try {
     const blocks = readData('blocks');
     const blockIndex = blocks.findIndex(b => b.id === req.params.id);
-
+    
     if (blockIndex === -1) {
       return res.status(404).json({ error: 'Bloco não encontrado' });
     }
-
-    const { type, content, enabled, order } = req.body;
+    
+    const { title, content, type, position } = req.body;
     blocks[blockIndex] = {
       ...blocks[blockIndex],
-      type: type || blocks[blockIndex].type,
+      title: title || blocks[blockIndex].title,
       content: content || blocks[blockIndex].content,
-      enabled: enabled !== undefined ? enabled : blocks[blockIndex].enabled,
-      order: order !== undefined ? order : blocks[blockIndex].order,
+      type: type || blocks[blockIndex].type,
+      position: position !== undefined ? position : blocks[blockIndex].position,
       updatedAt: new Date().toISOString()
     };
-
+    
     writeData('blocks', blocks);
     res.json({ message: 'Bloco atualizado com sucesso', block: blocks[blockIndex] });
   } catch (error) {
@@ -71,14 +88,14 @@ router.delete('/:id', authMiddleware, (req, res) => {
   try {
     const blocks = readData('blocks');
     const blockIndex = blocks.findIndex(b => b.id === req.params.id);
-
+    
     if (blockIndex === -1) {
       return res.status(404).json({ error: 'Bloco não encontrado' });
     }
-
+    
     blocks.splice(blockIndex, 1);
     writeData('blocks', blocks);
-
+    
     res.json({ message: 'Bloco deletado com sucesso' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao deletar bloco' });

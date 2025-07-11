@@ -1,6 +1,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import bcrypt from 'bcryptjs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -8,74 +9,68 @@ const __dirname = path.dirname(__filename);
 
 const DATA_DIR = path.join(__dirname, 'json');
 
-// Garantir que o diretório existe
+// Criar diretório de dados se não existir
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
 // Função para ler dados
-export function readData(filename) {
-  const filePath = path.join(DATA_DIR, `${filename}.json`);
-  
-  if (!fs.existsSync(filePath)) {
-    return [];
-  }
-  
+export const readData = (type) => {
   try {
+    const filePath = path.join(DATA_DIR, `${type}.json`);
+    if (!fs.existsSync(filePath)) {
+      return [];
+    }
     const data = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(data);
   } catch (error) {
-    console.error(`Erro ao ler arquivo ${filename}:`, error);
+    console.error(`Erro ao ler ${type}:`, error);
     return [];
   }
-}
+};
 
 // Função para escrever dados
-export function writeData(filename, data) {
-  const filePath = path.join(DATA_DIR, `${filename}.json`);
-  
+export const writeData = (type, data) => {
   try {
+    const filePath = path.join(DATA_DIR, `${type}.json`);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
     return true;
   } catch (error) {
-    console.error(`Erro ao escrever arquivo ${filename}:`, error);
+    console.error(`Erro ao escrever ${type}:`, error);
     return false;
   }
-}
+};
 
-// Função para inicializar dados padrão
-export function initializeData() {
-  const files = [
-    'users',
-    'videos',
-    'images',
-    'logos',
-    'blocks',
-    'settings',
-    'content',
-    'forms',
-    'submissions'
-  ];
-  
-  files.forEach(filename => {
-    const data = readData(filename);
-    if (data.length === 0) {
-      writeData(filename, []);
+// Inicializar dados padrão
+export const initializeData = async () => {
+  try {
+    // Criar usuário admin padrão se não existir
+    const users = readData('users');
+    if (users.length === 0) {
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const defaultUser = {
+        id: '1',
+        username: 'admin',
+        email: 'admin@admin.com',
+        password: hashedPassword,
+        role: 'admin',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      writeData('users', [defaultUser]);
+      console.log('✅ Usuário admin padrão criado');
     }
-  });
-  
-  // Criar usuário admin padrão se não existir
-  const users = readData('users');
-  if (users.length === 0) {
-    const defaultUser = {
-      id: '1',
-      username: 'admin',
-      password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // admin123
-      role: 'admin',
-      email: 'admin@example.com',
-      status: 'active',
-      createdAt: new Date().toISOString()
-    };
-    writeData('users', [defaultUser]);
+
+    // Inicializar outros tipos de dados se não existirem
+    const dataTypes = ['videos', 'images', 'content', 'blocks', 'settings', 'forms', 'logo'];
+    dataTypes.forEach(type => {
+      if (readData(type).length === 0) {
+        writeData(type, []);
+      }
+    });
+
+    console.log('✅ Dados inicializados com sucesso');
+  } catch (error) {
+    console.error('❌ Erro ao inicializar dados:', error);
   }
-}
+};
