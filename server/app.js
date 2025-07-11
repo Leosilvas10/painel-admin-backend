@@ -1,9 +1,10 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const path = require('path');
-const fs = require('fs');
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 // Importar rotas
 import authRoutes from './routes/auth.js';
@@ -16,6 +17,9 @@ import imageRoutes from './routes/images.js';
 import formRoutes from './routes/forms.js';
 import userRoutes from './routes/users.js';
 import dashboardRoutes from './routes/dashboard.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -76,4 +80,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
 
-module.exports = app;
+export default app;

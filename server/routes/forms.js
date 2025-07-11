@@ -1,7 +1,7 @@
 
-const express = require('express');
-const { authMiddleware } = require('../middleware/auth');
-const { readData, writeData } = require('../data/store');
+import express from 'express';
+import { authMiddleware } from '../middleware/auth.js';
+import { readData, writeData } from '../data/store.js';
 
 const router = express.Router();
 
@@ -165,4 +165,4 @@ router.get('/:id/submissions', authMiddleware, (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

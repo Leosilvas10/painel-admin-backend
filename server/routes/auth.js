@@ -10,7 +10,7 @@ const router = express.Router();
 const ADMIN_USER = {
   id: 1,
   username: 'admin',
-  password: '$2a$10$Hw6hhzYZmZ8zP8Zx8Zx8ZOYKYp4P5p5p5p5p5p5p5p5p5p5p5p5p5p5'
+  password: '$2b$10$1HX59jkPqUUjO2nZnxQOtuhbCxwkRnimvQUBDfiLqN/vUu8/VVAu6'
 };
 
 // Login

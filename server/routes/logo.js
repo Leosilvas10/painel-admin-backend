@@ -1,10 +1,14 @@
 
-const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const { authMiddleware } = require('../middleware/auth');
-const { readData, writeData } = require('../data/store');
+import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { authMiddleware } from '../middleware/auth.js';
+import { readData, writeData } from '../data/store.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
@@ -98,4 +102,4 @@ router.delete('/', authMiddleware, (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
