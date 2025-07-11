@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import './App.css'
 
+import LandingEditor from './LandingEditor'
+
 export default function App() {
   const [credentials, setCredentials] = useState({ username: '', password: '' })
   const [response, setResponse] = useState(null)
@@ -129,6 +131,12 @@ export default function App() {
           <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
             {JSON.stringify(response, null, 2)}
           </pre>
+        </div>
+      )}
+
+      {response && response.token && (
+        <div style={{ marginTop: '20px' }}>
+          <LandingEditor />
         </div>
       )}
 
