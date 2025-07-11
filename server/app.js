@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
@@ -64,7 +63,7 @@ app.use('/api/dashboard', dashboardRoutes);
 // Middleware de tratamento de erros
 app.use((err, req, res, next) => {
   console.error('Erro detalhado:', err);
-  
+
   // Tratar erro específico do path-to-regexp
   if (err.message && err.message.includes('Missing parameter name')) {
     return res.status(400).json({ 
@@ -72,7 +71,7 @@ app.use((err, req, res, next) => {
       message: 'Parâmetro de rota mal formatado'
     });
   }
-  
+
   res.status(500).json({ 
     error: 'Algo deu errado!',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
@@ -88,10 +87,11 @@ app.use('/*splat', (req, res) => {
 const startServer = async () => {
   try {
     await initializeData();
-    
+
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
       console.log(`📡 API disponível em http://localhost:${PORT}/api`);
+      console.log(`🌐 Acesso externo: https://${process.env.REPL_SLUG || 'localhost'}.${process.env.REPL_OWNER || 'localhost'}.replit.app/api`);
     });
   } catch (error) {
     console.error('❌ Erro ao iniciar servidor:', error);
