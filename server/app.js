@@ -84,7 +84,16 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Middleware de tratamento de erros
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Erro detalhado:', err);
+  
+  // Tratar erro específico do path-to-regexp
+  if (err.message && err.message.includes('Missing parameter name')) {
+    return res.status(400).json({ 
+      error: 'Erro na definição da rota',
+      message: 'Parâmetro de rota mal formatado'
+    });
+  }
+  
   res.status(500).json({ 
     error: 'Algo deu errado!',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'

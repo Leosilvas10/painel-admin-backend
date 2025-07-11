@@ -45,7 +45,7 @@ router.get("/", authMiddleware, (req, res) => {
 });
 
 // Upload de imagem
-router.post("/", authMiddleware, upload.single("image"), (req, res) => {
+router.post("/upload", authMiddleware, upload.single("image"), (req, res) => {
   try {
     if (!req.file) {
       return res

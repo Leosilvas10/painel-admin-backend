@@ -45,7 +45,7 @@ router.get("/", authMiddleware, (req, res) => {
 });
 
 // Upload de vídeo
-router.post("/", authMiddleware, upload.single("video"), (req, res) => {
+router.post("/upload", authMiddleware, upload.single("video"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Nenhum arquivo de vídeo enviado" });

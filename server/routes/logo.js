@@ -51,7 +51,7 @@ router.get("/", (req, res) => {
 });
 
 // Upload de logo
-router.post("/", authMiddleware, upload.single("logo"), (req, res) => {
+router.post("/upload", authMiddleware, upload.single("logo"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Nenhum arquivo de logo enviado" });

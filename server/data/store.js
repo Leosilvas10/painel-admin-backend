@@ -1,3 +1,4 @@
+
 import fs from "fs";
 import path from "path";
 import bcrypt from "bcryptjs";
@@ -8,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 const DATA_DIR = path.join(__dirname, "json");
 
-// Criar diretório de dados se não existir
+// Garantir que o diretório de dados existe
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
@@ -23,7 +24,7 @@ export const readData = (type) => {
     const data = fs.readFileSync(filePath, "utf8");
     return JSON.parse(data);
   } catch (error) {
-    console.error(`Erro ao ler ${type}:`, error);
+    console.error(`Erro ao ler dados de ${type}:`, error);
     return [];
   }
 };
@@ -35,48 +36,47 @@ export const writeData = (type, data) => {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
     return true;
   } catch (error) {
-    console.error(`Erro ao escrever ${type}:`, error);
+    console.error(`Erro ao escrever dados de ${type}:`, error);
     return false;
   }
 };
 
-// Inicializar dados padrão
+// Função para inicializar dados padrão
 export const initializeData = async () => {
   try {
-    // Criar usuário admin padrão se não existir
+    console.log("🔄 Inicializando dados do sistema...");
+
+    // Inicializar usuários
     const users = readData("users");
     if (users.length === 0) {
       const hashedPassword = await bcrypt.hash("admin123", 10);
-      const defaultUser = {
+      const adminUser = {
         id: "1",
         username: "admin",
-        email: "admin@admin.com",
+        email: "admin@sistema.com",
         password: hashedPassword,
         role: "admin",
+        status: "active",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      writeData("users", [defaultUser]);
+      
+      writeData("users", [adminUser]);
       console.log("✅ Usuário admin padrão criado");
     }
 
     // Inicializar outros tipos de dados se não existirem
-    const dataTypes = [
-      "videos",
-      "images",
-      "contents",
-      "blocks",
-      "settings",
-      "forms",
-      "logos",
-    ];
+    const dataTypes = ["contents", "logos", "videos", "images", "blocks", "forms", "settings"];
+    
     dataTypes.forEach((type) => {
-      if (readData(type).length === 0) {
+      const data = readData(type);
+      if (data.length === 0) {
         writeData(type, []);
+        console.log(`✅ Arquivo ${type}.json inicializado`);
       }
     });
 
-    console.log("✅ Dados inicializados com sucesso");
+    console.log("✅ Inicialização de dados concluída");
   } catch (error) {
     console.error("❌ Erro ao inicializar dados:", error);
   }
