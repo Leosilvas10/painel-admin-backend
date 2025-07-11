@@ -114,4 +114,4 @@ router.delete("/:id", authMiddleware, (req, res) => {
   }
 });
 
-export default router;uter;
+export default router;
