@@ -1,4 +1,3 @@
-
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
@@ -61,7 +60,7 @@ export const initializeData = async () => {
       console.log('✅ Usuário admin padrão criado');
       }
     } catch (error) {
-      console.error('❌ Erro ao criar usuário admin:', error);riado');
+      console.error('❌ Erro ao criar usuário admin:', error);
     }
 
     // Inicializar outros tipos de dados se não existirem
