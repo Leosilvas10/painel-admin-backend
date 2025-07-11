@@ -1,0 +1,84 @@
+Analisando seu projeto, posso responder suas perguntas:
+1. Arquivo inicial que carrega middlewares e rotas:
+O arquivo principal é server/app.js que importa e configura todas as rotas, e é executado através do server/start.js.
+2. Funções personalizadas ou bibliotecas para gerar rotas:
+Não, você não está usando nenhuma função personalizada ou biblioteca para gerar rotas dinamicamente. Todas as rotas são definidas manualmente usando o Express Router padrão.
+3. Framework ou CLI que gere rotas automaticamente:
+Não, você está usando Express.js padrão sem nenhum framework adicional que gere rotas automaticamente.
+
+
+analise o erro abaixo:
+
+/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:73
+throw new TypeError(`Missing parameter name at ${i}: ${DEBUG_URL}`);
+^
+
+TypeError: Missing parameter name at 1: https://git.new/pathToRegexpError
+at name (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:73:19)
+at lexer (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:91:27)
+at lexer.next (<anonymous>)
+at Iter.peek (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:106:38)
+at Iter.tryConsume (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:112:28)
+at Iter.text (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:128:30)
+at consume (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:152:29)
+at parse (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:183:20)
+at /home/runner/workspace/node_modules/path-to-regexp/dist/index.js:294:74
+at Array.map (<anonymous>)
+
+Node.js v20.18.1
+
+
+o arquivo do backend esta em anexo
+Analisando seu projeto, posso responder suas perguntas: 1. Arquivo inicial que carrega middlewares e rotas: O arquivo principal é server/app.js que importa e configura todas as rotas, e é executado através do server/start.js. 2. Funções personalizadas ou bibliotecas para gerar rotas: Não, você não está usando nenhuma função personalizada ou biblioteca para gerar rotas dinamicamente. Todas as rotas são definidas manualmente usando o Express Router padrão. 3. Framework ou CLI que gere rotas automaticamente: Não, você está usando Express.js padrão sem nenhum framework adicional que gere rotas automaticamente. analise o erro abaixo: /home/runner/workspace/node_modules/path-to-regexp/dist/index.js:73 throw new TypeError(`Missing parameter name at ${i}: ${DEBUG_URL}`); ^ TypeError: Missing parameter name at 1: https://git.new/pathToRegexpError at name (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:73:19) at lexer (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:91:27) at lexer.next (<anonymous>) at Iter.peek (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:106:38) at Iter.tryConsume (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:112:28) at Iter.text (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:128:30) at consume (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:152:29) at parse (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:183:20) at /home/runner/workspace/node_modules/path-to-regexp/dist/index.js:294:74 at Array.map (<anonymous>) Node.js v20.18.1 o arquivo do backend esta em anexo
+Análise do Erro: Missing parameter name no path-to-regexp
+O que o erro significa
+O erro apresentado:
+
+text
+TypeError: Missing parameter name at 1: https://git.new/pathToRegexpError
+    at name (/home/runner/workspace/node_modules/path-to-regexp/dist/index.js:73:19)
+    ...
+indica que a biblioteca path-to-regexp (utilizada internamente pelo Express para tratar rotas dinâmicas) encontrou um problema ao tentar interpretar uma rota definida no seu código. Especificamente, o erro ocorre quando há um parâmetro dinâmico mal definido, geralmente relacionado à sintaxe das rotas.
+
+Causa mais comum
+Esse erro normalmente acontece quando uma rota é declarada com dois pontos (:) sem um nome de parâmetro logo após. Exemplos de sintaxe incorreta:
+
+js
+app.get('/api/:/details', handler); // Erro: falta o nome do parâmetro
+app.get('/api/:', handler);         // Erro: falta o nome do parâmetro
+A declaração correta de parâmetros dinâmicos deve ser:
+
+js
+app.get('/api/:id/details', handler); // Correto
+Como corrigir
+Revise todas as rotas definidas no seu projeto, especialmente aquelas que utilizam parâmetros dinâmicos (:).
+
+Procure por rotas onde o caractere : não é seguido por um nome de parâmetro válido.
+
+Corrija a sintaxe para garantir que todos os parâmetros tenham nomes válidos.
+
+Exemplo prático
+Se você tiver algo assim:
+
+js
+router.get('/user/:/profile', userProfileHandler);
+Altere para:
+
+js
+router.get('/user/:userId/profile', userProfileHandler);
+Dicas para localizar o erro
+Procure por todas as ocorrências de : em suas rotas.
+
+Use a busca do seu editor para localizar rotas suspeitas.
+
+Verifique se algum middleware ou arquivo de rotas está exportando rotas com sintaxe incorreta.
+
+Observação
+Como você informou que todas as rotas são definidas manualmente, o erro provavelmente está em algum arquivo de rotas onde um parâmetro ficou sem nome. Express não gera rotas automaticamente, então a origem está no código fonte do projeto.
+
+Resumo
+Erro: Parâmetro de rota sem nome.
+
+Causa: Sintaxe incorreta ao definir rotas dinâmicas.
+
+Solução: Corrija todas as rotas para garantir que os parâ
