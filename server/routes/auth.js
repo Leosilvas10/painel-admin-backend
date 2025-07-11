@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
     const token = generateToken(user);
 
     console.log('✅ Login bem-sucedido!');
-    res.json({ 
+    return res.status(200).json({ 
       message: 'Login realizado com sucesso',
       token,
       user: {
@@ -59,8 +59,12 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Erro no login:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error('❌ Erro detalhado no login:', error);
+    console.error('❌ Stack trace:', error.stack);
+    return res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Erro interno do servidor'
+    });
   }
 });
 

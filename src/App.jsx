@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import './App.css'
 
@@ -13,7 +12,7 @@ export default function App() {
     setResponse(null)
 
     const loginUrl = 'https://painel-admin-backend-leonardosilvas2.replit.app/api/auth/login'
-    
+
     console.log('🚀 Iniciando login...')
     console.log('📝 URL:', loginUrl)
     console.log('📝 Credentials:', credentials)
@@ -23,6 +22,7 @@ export default function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(credentials)
       })
@@ -32,12 +32,12 @@ export default function App() {
 
       const data = await res.json()
       console.log('📡 Response data:', data)
-      
-      setResponse(data)
-      
-      if (data.token) {
+
+      if (res.ok && data.token) {
         localStorage.setItem('token', data.token)
-        console.log('✅ Token salvo no localStorage')
+        setResponse(data)
+      } else {
+        setResponse(data)
       }
     } catch (error) {
       console.error('❌ Erro na requisição:', error)
@@ -71,7 +71,7 @@ export default function App() {
   return (
     <main style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
       <h1>Teste de Login - Painel Admin</h1>
-      
+
       <form onSubmit={handleLogin} style={{ marginBottom: '20px' }}>
         <div style={{ marginBottom: '10px' }}>
           <input
