@@ -30,6 +30,9 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5173",
       "https://painel-admin-backend-leonardosilvas2.replit.app",
+      "https://workspace-leonardosilvas2.replit.app",
+      /\.replit\.app$/,
+      /\.replit\.dev$/
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -68,6 +71,29 @@ app.get("/api/health", (req, res) => {
 app.get("/api", (req, res) => {
   res.json({
     message: "API está funcionando!",
+    rotas_disponiveis: [
+      "POST /api/auth/login",
+      "GET /api/auth/verify",
+      "GET /api/health",
+      "GET /api/logo",
+      "GET /api/settings",
+      "GET /api/users",
+      "GET /api/dashboard",
+      "GET /api/images",
+      "GET /api/videos",
+      "GET /api/content",
+      "GET /api/blocks",
+      "GET /api/forms",
+    ],
+  });
+});
+
+// Rota raiz para deployment
+app.get("/", (req, res) => {
+  res.json({
+    message: "Painel Admin Backend está funcionando!",
+    status: "OK",
+    api_endpoint: "/api",
     rotas_disponiveis: [
       "POST /api/auth/login",
       "GET /api/auth/verify",
