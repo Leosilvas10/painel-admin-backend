@@ -4,6 +4,8 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { initializeData } from "./data/store.js";
+import dotenv from "dotenv"; // Adicionado para variáveis de ambiente
+dotenv.config(); // Carrega variáveis do .env
 
 // Importar rotas
 import authRoutes from "./routes/auth.js";
@@ -32,7 +34,9 @@ app.use(
       "https://painel-admin-backend-leonardosilvas2.replit.app",
       "https://workspace-leonardosilvas2.replit.app",
       /\.replit\.app$/,
-      /\.replit\.dev$/
+      /\.replit\.dev$/,
+      "http://31.97.170.175",
+      "https://31.97.170.175"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -180,6 +184,9 @@ const startServer = async () => {
       );
       console.log(
         `🔗 URL de produção: https://painel-admin-backend-leonardosilvas2.replit.app/api`,
+      );
+      console.log(
+        `🌐 Acesso pelo IP: http://31.97.170.175:${PORT}/api`
       );
     });
   } catch (error) {
