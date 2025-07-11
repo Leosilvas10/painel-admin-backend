@@ -12,8 +12,14 @@ export default function App() {
     setLoading(true)
     setResponse(null)
 
+    const loginUrl = 'https://painel-admin-backend-leonardosilvas2.replit.app/api/auth/login'
+    
+    console.log('🚀 Iniciando login...')
+    console.log('📝 URL:', loginUrl)
+    console.log('📝 Credentials:', credentials)
+
     try {
-      const res = await fetch('https://painel-admin-backend-leonardosilvas2.replit.app/api/auth/login', {
+      const res = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -21,13 +27,20 @@ export default function App() {
         body: JSON.stringify(credentials)
       })
 
+      console.log('📡 Response status:', res.status)
+      console.log('📡 Response headers:', Object.fromEntries(res.headers.entries()))
+
       const data = await res.json()
+      console.log('📡 Response data:', data)
+      
       setResponse(data)
       
       if (data.token) {
         localStorage.setItem('token', data.token)
+        console.log('✅ Token salvo no localStorage')
       }
     } catch (error) {
+      console.error('❌ Erro na requisição:', error)
       setResponse({ error: 'Erro de conexão: ' + error.message })
     } finally {
       setLoading(false)
