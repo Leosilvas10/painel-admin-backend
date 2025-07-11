@@ -67,6 +67,28 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Debug middleware para todas as requisições - DEVE VIR ANTES DAS ROTAS
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.url}`);
+  console.log(`📨 Headers:`, JSON.stringify(req.headers, null, 2));
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log(`📨 Body:`, JSON.stringify(req.body, null, 2));
+  }
+  next();
+});
+
+// Rotas da API
+app.use("/api/auth", authRoutes);
+app.use("/api/logo", logoRoutes);
+app.use("/api/videos", videoRoutes);
+app.use("/api/content", contentRoutes);
+app.use("/api/blocks", blockRoutes);
+app.use("/api/settings", settingsRoutes);
+app.use("/api/images", imageRoutes);
+app.use("/api/forms", formRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+
 // Rota de teste para debug
 app.get("/api", (req, res) => {
   res.json({
@@ -111,28 +133,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// Rotas da API - DEVEM VIR ANTES DO MIDDLEWARE DE DEBUG
-app.use("/api/auth", authRoutes);
-app.use("/api/logo", logoRoutes);
-app.use("/api/videos", videoRoutes);
-app.use("/api/content", contentRoutes);
-app.use("/api/blocks", blockRoutes);
-app.use("/api/settings", settingsRoutes);
-app.use("/api/images", imageRoutes);
-app.use("/api/forms", formRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-
-// Debug middleware para todas as requisições
-app.use((req, res, next) => {
-  console.log(`📨 ${req.method} ${req.url}`);
-  console.log(`📨 Headers:`, JSON.stringify(req.headers, null, 2));
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log(`📨 Body:`, JSON.stringify(req.body, null, 2));
-  }
-  next();
-});
-
 // Middleware de tratamento de erros
 app.use((err, req, res, next) => {
   console.error("Erro detalhado:", err);
@@ -166,7 +166,7 @@ const startServer = async () => {
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
-      console.log(`📡 API disponível em http://localhost:${PORT}/api`);
+      console.log(`📡 API disponível em http://0.0.0.0:${PORT}/api`);
       console.log(
         `🌐 Acesso externo: https://${process.env.REPL_SLUG || "painel-admin-backend"}-${process.env.REPL_OWNER || "leonardosilvas2"}.replit.app/api`,
       );
