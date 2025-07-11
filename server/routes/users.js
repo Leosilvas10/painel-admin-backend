@@ -9,12 +9,8 @@ const router = express.Router();
 router.get("/", authMiddleware, (req, res) => {
   try {
     const users = readData("users");
-    // Retorna todos os dados exceto senha
-    const safeUsers = users.map((user) => {
-      const { password, ...safe } = user;
-      return safe;
-    });
-    res.json(safeUsers);
+    const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+    res.json(usersWithoutPasswords);
   } catch (error) {
     res.status(500).json({ error: "Erro ao listar usuários" });
   }
@@ -23,40 +19,36 @@ router.get("/", authMiddleware, (req, res) => {
 // Criar usuário
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
     const users = readData("users");
+    const { username, email, password, role } = req.body;
 
     if (!username || !email || !password) {
-      return res
-        .status(400)
-        .json({ error: "Username, email e senha são obrigatórios" });
+      return res.status(400).json({ error: "Username, email e senha são obrigatórios" });
     }
 
     // Verificar se usuário já existe
-    const existingUser = users.find(
-      (u) => u.username === username || u.email === email,
-    );
+    const existingUser = users.find(u => u.username === username || u.email === email);
     if (existingUser) {
-      return res.status(400).json({ error: "Usuário já existe" });
+      return res.status(400).json({ error: "Usuário ou email já existe" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const userData = {
+
+    const user = {
       id: Date.now().toString(),
       username,
       email,
       password: hashedPassword,
-      role: role || "editor",
-      status: "active",
+      role: role || "user",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    users.push(userData);
+    users.push(user);
     writeData("users", users);
 
-    const { password: _, ...safeUser } = userData;
-    res.json({ message: "Usuário criado com sucesso", user: safeUser });
+    const { password: _, ...userWithoutPassword } = user;
+    res.json({ message: "Usuário criado com sucesso", user: userWithoutPassword });
   } catch (error) {
     res.status(500).json({ error: "Erro ao criar usuário" });
   }
@@ -72,10 +64,10 @@ router.get("/:id", authMiddleware, (req, res) => {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    const { password, ...safeUser } = user;
-    res.json(safeUser);
+    const { password, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
   } catch (error) {
-    res.status(500).json({ error: "Erro ao obter usuário" });
+    res.status(500).json({ error: "Erro ao buscar usuário" });
   }
 });
 
@@ -89,45 +81,34 @@ router.put("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    const { username, email, password, role, status } = req.body;
-
-    // Verificar conflitos de username/email
-    if (username || email) {
-      const conflictUser = users.find(
-        (u) =>
-          u.id !== req.params.id &&
-          (u.username === username || u.email === email),
-      );
-
-      if (conflictUser) {
-        return res.status(400).json({ error: "Username ou email já existem" });
-      }
-    }
-
-    const updatedUser = {
-      ...users[userIndex],
+    const { username, email, password, role } = req.body;
+    const updates = {
       username: username || users[userIndex].username,
       email: email || users[userIndex].email,
       role: role || users[userIndex].role,
-      status: status || users[userIndex].status,
       updatedAt: new Date().toISOString(),
     };
 
     if (password) {
-      updatedUser.password = await bcrypt.hash(password, 10);
+      updates.password = await bcrypt.hash(password, 10);
+    } else {
+      updates.password = users[userIndex].password;
     }
 
-    users[userIndex] = updatedUser;
+    users[userIndex] = { ...users[userIndex], ...updates };
     writeData("users", users);
 
-    const { password: _, ...safeUser } = updatedUser;
-    res.json({ message: "Usuário atualizado com sucesso", user: safeUser });
+    const { password: _, ...userWithoutPassword } = users[userIndex];
+    res.json({
+      message: "Usuário atualizado com sucesso",
+      user: userWithoutPassword,
+    });
   } catch (error) {
     res.status(500).json({ error: "Erro ao atualizar usuário" });
   }
 });
 
-// Excluir usuário
+// Deletar usuário
 router.delete("/:id", authMiddleware, (req, res) => {
   try {
     const users = readData("users");
@@ -137,17 +118,17 @@ router.delete("/:id", authMiddleware, (req, res) => {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
+    // Não permitir deletar o próprio usuário
     if (users[userIndex].id === req.user.id) {
-      return res
-        .status(400)
-        .json({ error: "Não é possível excluir seu próprio usuário" });
+      return res.status(400).json({ error: "Não é possível deletar seu próprio usuário" });
     }
 
     users.splice(userIndex, 1);
     writeData("users", users);
-    res.json({ message: "Usuário excluído com sucesso" });
+
+    res.json({ message: "Usuário deletado com sucesso" });
   } catch (error) {
-    res.status(500).json({ error: "Erro ao excluir usuário" });
+    res.status(500).json({ error: "Erro ao deletar usuário" });
   }
 });
 

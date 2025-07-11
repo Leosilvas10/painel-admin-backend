@@ -1,3 +1,4 @@
+
 import express from "express";
 import { authMiddleware } from "../middleware/auth.js";
 import { readData, writeData } from "../data/store.js";
@@ -104,6 +105,31 @@ router.delete("/:id", authMiddleware, (req, res) => {
     res.json({ message: "Formulário deletado com sucesso" });
   } catch (error) {
     res.status(500).json({ error: "Erro ao deletar formulário" });
+  }
+});
+
+// Submeter formulário (público)
+router.post("/:id/submit", (req, res) => {
+  try {
+    const forms = readData("forms");
+    const formIndex = forms.findIndex((f) => f.id === req.params.id);
+
+    if (formIndex === -1) {
+      return res.status(404).json({ error: "Formulário não encontrado" });
+    }
+
+    const submission = {
+      id: Date.now().toString(),
+      data: req.body,
+      submittedAt: new Date().toISOString(),
+    };
+
+    forms[formIndex].submissions.push(submission);
+    writeData("forms", forms);
+
+    res.json({ message: "Formulário enviado com sucesso" });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao enviar formulário" });
   }
 });
 

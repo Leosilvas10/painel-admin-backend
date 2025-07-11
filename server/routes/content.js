@@ -8,8 +8,8 @@ const router = express.Router();
 // Listar conteúdos
 router.get('/', authMiddleware, (req, res) => {
   try {
-    const contents = readData('contents');
-    res.json(contents);
+    const content = readData('content');
+    res.json(content);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar conteúdos' });
   }
@@ -18,27 +18,27 @@ router.get('/', authMiddleware, (req, res) => {
 // Criar conteúdo
 router.post('/', authMiddleware, (req, res) => {
   try {
-    const contents = readData('contents');
-    const { title, body, type, status } = req.body;
+    const content = readData('content');
+    const { title, type, data, active } = req.body;
 
-    if (!title || !body) {
-      return res.status(400).json({ error: 'Título e conteúdo são obrigatórios' });
+    if (!title || !type) {
+      return res.status(400).json({ error: 'Título e tipo são obrigatórios' });
     }
 
-    const content = {
+    const newContent = {
       id: Date.now().toString(),
       title,
-      body,
-      type: type || 'page',
-      status: status || 'draft',
+      type,
+      data: data || {},
+      active: active !== undefined ? active : true,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
-    contents.push(content);
-    writeData('contents', contents);
+    content.push(newContent);
+    writeData('content', content);
 
-    res.json({ message: 'Conteúdo criado com sucesso', content });
+    res.json({ message: 'Conteúdo criado com sucesso', content: newContent });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao criar conteúdo' });
   }
@@ -47,14 +47,14 @@ router.post('/', authMiddleware, (req, res) => {
 // Obter conteúdo específico
 router.get('/:id', authMiddleware, (req, res) => {
   try {
-    const contents = readData('contents');
-    const content = contents.find(c => c.id === req.params.id);
-    
-    if (!content) {
+    const content = readData('content');
+    const item = content.find((c) => c.id === req.params.id);
+
+    if (!item) {
       return res.status(404).json({ error: 'Conteúdo não encontrado' });
     }
-    
-    res.json(content);
+
+    res.json(item);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar conteúdo' });
   }
@@ -63,25 +63,28 @@ router.get('/:id', authMiddleware, (req, res) => {
 // Atualizar conteúdo
 router.put('/:id', authMiddleware, (req, res) => {
   try {
-    const contents = readData('contents');
-    const contentIndex = contents.findIndex(c => c.id === req.params.id);
-    
+    const content = readData('content');
+    const contentIndex = content.findIndex((c) => c.id === req.params.id);
+
     if (contentIndex === -1) {
       return res.status(404).json({ error: 'Conteúdo não encontrado' });
     }
-    
-    const { title, body, type, status } = req.body;
-    contents[contentIndex] = {
-      ...contents[contentIndex],
-      title: title || contents[contentIndex].title,
-      body: body || contents[contentIndex].body,
-      type: type || contents[contentIndex].type,
-      status: status || contents[contentIndex].status,
-      updatedAt: new Date().toISOString()
+
+    const { title, type, data, active } = req.body;
+    content[contentIndex] = {
+      ...content[contentIndex],
+      title: title || content[contentIndex].title,
+      type: type || content[contentIndex].type,
+      data: data || content[contentIndex].data,
+      active: active !== undefined ? active : content[contentIndex].active,
+      updatedAt: new Date().toISOString(),
     };
-    
-    writeData('contents', contents);
-    res.json({ message: 'Conteúdo atualizado com sucesso', content: contents[contentIndex] });
+
+    writeData('content', content);
+    res.json({
+      message: 'Conteúdo atualizado com sucesso',
+      content: content[contentIndex],
+    });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao atualizar conteúdo' });
   }
@@ -90,16 +93,16 @@ router.put('/:id', authMiddleware, (req, res) => {
 // Deletar conteúdo
 router.delete('/:id', authMiddleware, (req, res) => {
   try {
-    const contents = readData('contents');
-    const contentIndex = contents.findIndex(c => c.id === req.params.id);
-    
+    const content = readData('content');
+    const contentIndex = content.findIndex((c) => c.id === req.params.id);
+
     if (contentIndex === -1) {
       return res.status(404).json({ error: 'Conteúdo não encontrado' });
     }
-    
-    contents.splice(contentIndex, 1);
-    writeData('contents', contents);
-    
+
+    content.splice(contentIndex, 1);
+    writeData('content', content);
+
     res.json({ message: 'Conteúdo deletado com sucesso' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao deletar conteúdo' });

@@ -9,22 +9,20 @@ const router = express.Router();
 router.get('/stats', authMiddleware, (req, res) => {
   try {
     const users = readData('users');
-    const contents = readData('contents');
     const images = readData('images');
     const videos = readData('videos');
     const forms = readData('forms');
     const blocks = readData('blocks');
+    const content = readData('content');
 
     const stats = {
       users: users.length,
-      contents: contents.length,
       images: images.length,
       videos: videos.length,
       forms: forms.length,
       blocks: blocks.length,
-      totalFiles: images.length + videos.length,
-      activeContents: contents.filter(c => c.status === 'published').length,
-      activeBlocks: blocks.filter(b => b.active === true).length
+      content: content.length,
+      totalSubmissions: forms.reduce((total, form) => total + (form.submissions?.length || 0), 0),
     };
 
     res.json(stats);
@@ -34,52 +32,53 @@ router.get('/stats', authMiddleware, (req, res) => {
 });
 
 // Obter atividades recentes
-router.get('/activities', authMiddleware, (req, res) => {
+router.get('/recent', authMiddleware, (req, res) => {
   try {
-    const users = readData('users');
-    const contents = readData('contents');
     const images = readData('images');
     const videos = readData('videos');
+    const forms = readData('forms');
 
     const activities = [];
 
-    // Adicionar criações recentes de usuários
-    users.slice(-5).forEach(user => {
-      activities.push({
-        type: 'user_created',
-        description: `Usuário ${user.username} foi criado`,
-        timestamp: user.createdAt,
-        data: { username: user.username }
-      });
-    });
-
-    // Adicionar conteúdos recentes
-    contents.slice(-5).forEach(content => {
-      activities.push({
-        type: 'content_created',
-        description: `Conteúdo "${content.title}" foi criado`,
-        timestamp: content.createdAt,
-        data: { title: content.title, type: content.type }
-      });
-    });
-
     // Adicionar uploads recentes
-    [...images.slice(-3), ...videos.slice(-3)].forEach(file => {
-      const type = file.path.includes('/images/') ? 'image' : 'video';
+    images.slice(-5).forEach(img => {
       activities.push({
-        type: `${type}_uploaded`,
-        description: `${type === 'image' ? 'Imagem' : 'Vídeo'} "${file.title}" foi enviado`,
-        timestamp: file.uploadedAt || file.createdAt,
-        data: { title: file.title, filename: file.filename }
+        type: 'image_upload',
+        title: `Imagem: ${img.title}`,
+        date: img.uploadedAt,
+        id: img.id
       });
     });
 
-    // Ordenar por timestamp (mais recente primeiro)
-    activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    videos.slice(-5).forEach(video => {
+      activities.push({
+        type: 'video_upload',
+        title: `Vídeo: ${video.title}`,
+        date: video.uploadedAt,
+        id: video.id
+      });
+    });
+
+    // Adicionar submissões recentes
+    forms.forEach(form => {
+      if (form.submissions && form.submissions.length > 0) {
+        form.submissions.slice(-3).forEach(submission => {
+          activities.push({
+            type: 'form_submission',
+            title: `Submissão: ${form.name}`,
+            date: submission.submittedAt,
+            id: submission.id
+          });
+        });
+      }
+    });
+
+    // Ordenar por data mais recente
+    activities.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     res.json(activities.slice(0, 10));
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter atividades' });
+    res.status(500).json({ error: 'Erro ao obter atividades recentes' });
   }
 });
 
