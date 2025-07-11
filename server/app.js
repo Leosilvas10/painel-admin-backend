@@ -106,6 +106,9 @@ app.get("/api", (req, res) => {
       "GET /api/content",
       "GET /api/blocks",
       "GET /api/forms",
+      "GET /api/content/landing",
+      "GET /api/content/landing/:slug",
+      "PUT /api/content/landing/:slug",
     ],
   });
 });
@@ -129,6 +132,9 @@ app.get("/", (req, res) => {
       "GET /api/content",
       "GET /api/blocks",
       "GET /api/forms",
+      "GET /api/content/landing",
+      "GET /api/content/landing/:slug",
+      "PUT /api/content/landing/:slug",
     ],
   });
 });

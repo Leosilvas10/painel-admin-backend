@@ -36,7 +36,17 @@ const defaultData = {
   logos: [],
   content: [],
   blocks: [],
-  forms: []
+  forms: [],
+  landing_pages: {
+    'banco-jota': {
+      title: 'Título da Landing do Banco Jota',
+      subtitle: 'Subtítulo...',
+      cta: 'Chamada para ação',
+      description: 'Descrição detalhada...',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  }
 };
 
 // Função para ler dados de um arquivo
