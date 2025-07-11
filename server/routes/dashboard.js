@@ -82,4 +82,4 @@ router.get('/recent', authMiddleware, (req, res) => {
   }
 });
 
-export default router;uter;
+export default router;
