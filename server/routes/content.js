@@ -170,4 +170,35 @@ router.get("/landing", (req, res) => {
   }
 });
 
+// Deletar uma landing page específica por slug
+router.delete("/landing/:slug", (req, res) => {
+  try {
+    const { slug } = req.params;
+    const landingData = readData("landing_pages");
+    
+    // Verificar se a landing page existe
+    if (!landingData[slug]) {
+      return res.status(404).json({ 
+        error: "Landing page não encontrada",
+        slug: slug 
+      });
+    }
+
+    // Deletar a landing page
+    delete landingData[slug];
+    
+    // Salvar os dados atualizados
+    writeData("landing_pages", landingData);
+
+    res.json({
+      message: "Landing page deletada com sucesso",
+      slug: slug,
+      deletedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Erro ao deletar landing page:", error);
+    res.status(500).json({ error: "Erro ao deletar landing page" });
+  }
+});
+
 export default router;
