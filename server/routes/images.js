@@ -23,52 +23,15 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({
-  storage: storage,
+const upload = multer({ 
+  storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp|svg/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-
-    if (mimetype && extname) {
-      return cb(null, true);
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
     } else {
-      cb(new Error('Apenas imagens são permitidas'));
+      cb(new Error('Apenas arquivos de imagem são permitidos'));
     }
-  }
-});
-
-// Upload de imagens
-router.post('/upload', authMiddleware, upload.single('image'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'Nenhum arquivo enviado' });
-    }
-
-    const { alt, category } = req.body;
-    const images = readData('images');
-    
-    const imageData = {
-      id: Date.now().toString(),
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      alt: alt || '',
-      category: category || 'general',
-      path: `/uploads/images/${req.file.filename}`,
-      size: req.file.size,
-      uploadedAt: new Date().toISOString()
-    };
-
-    images.push(imageData);
-    writeData('images', images);
-
-    res.json({
-      message: 'Imagem enviada com sucesso',
-      image: imageData
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao fazer upload da imagem' });
   }
 });
 
@@ -79,6 +42,38 @@ router.get('/', authMiddleware, (req, res) => {
     res.json(images);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar imagens' });
+  }
+});
+
+// Upload de imagem
+router.post('/', authMiddleware, upload.single('image'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nenhum arquivo de imagem enviado' });
+    }
+
+    const { title, description, alt } = req.body;
+    const images = readData('images');
+
+    const imageData = {
+      id: Date.now().toString(),
+      title: title || 'Imagem sem título',
+      description: description || '',
+      alt: alt || '',
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      path: `/uploads/images/${req.file.filename}`,
+      size: req.file.size,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    images.push(imageData);
+    writeData('images', images);
+
+    res.json({ message: 'Imagem enviada com sucesso', image: imageData });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao fazer upload da imagem' });
   }
 });
 
@@ -108,11 +103,12 @@ router.put('/:id', authMiddleware, (req, res) => {
       return res.status(404).json({ error: 'Imagem não encontrada' });
     }
     
-    const { alt, category } = req.body;
+    const { title, description, alt } = req.body;
     images[imageIndex] = {
       ...images[imageIndex],
+      title: title || images[imageIndex].title,
+      description: description || images[imageIndex].description,
       alt: alt || images[imageIndex].alt,
-      category: category || images[imageIndex].category,
       updatedAt: new Date().toISOString()
     };
     
@@ -134,9 +130,9 @@ router.delete('/:id', authMiddleware, (req, res) => {
     }
     
     const image = images[imageIndex];
-    const filePath = path.join(__dirname, '../uploads/images/', image.filename);
     
-    // Remover arquivo físico
+    // Deletar arquivo físico
+    const filePath = path.join(__dirname, '..', 'uploads', 'images', image.filename);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }

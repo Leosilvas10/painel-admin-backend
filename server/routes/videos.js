@@ -23,52 +23,15 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({
-  storage: storage,
+const upload = multer({ 
+  storage,
   limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /mp4|avi|mov|wmv|flv/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = file.mimetype.startsWith('video/');
-
-    if (mimetype && extname) {
-      return cb(null, true);
+    if (file.mimetype.startsWith('video/')) {
+      cb(null, true);
     } else {
-      cb(new Error('Apenas vídeos são permitidos'));
+      cb(new Error('Apenas arquivos de vídeo são permitidos'));
     }
-  }
-});
-
-// Upload de vídeo
-router.post('/upload', authMiddleware, upload.single('video'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'Nenhum arquivo enviado' });
-    }
-
-    const { title, description } = req.body;
-    const videos = readData('videos');
-    
-    const videoData = {
-      id: Date.now().toString(),
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      title: title || req.file.originalname,
-      description: description || '',
-      path: `/uploads/videos/${req.file.filename}`,
-      size: req.file.size,
-      uploadedAt: new Date().toISOString()
-    };
-
-    videos.push(videoData);
-    writeData('videos', videos);
-
-    res.json({
-      message: 'Vídeo enviado com sucesso',
-      video: videoData
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao fazer upload do vídeo' });
   }
 });
 
@@ -79,6 +42,37 @@ router.get('/', authMiddleware, (req, res) => {
     res.json(videos);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar vídeos' });
+  }
+});
+
+// Upload de vídeo
+router.post('/', authMiddleware, upload.single('video'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nenhum arquivo de vídeo enviado' });
+    }
+
+    const { title, description } = req.body;
+    const videos = readData('videos');
+
+    const videoData = {
+      id: Date.now().toString(),
+      title: title || 'Vídeo sem título',
+      description: description || '',
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      path: `/uploads/videos/${req.file.filename}`,
+      size: req.file.size,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    videos.push(videoData);
+    writeData('videos', videos);
+
+    res.json({ message: 'Vídeo enviado com sucesso', video: videoData });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao fazer upload do vídeo' });
   }
 });
 
@@ -134,9 +128,9 @@ router.delete('/:id', authMiddleware, (req, res) => {
     }
     
     const video = videos[videoIndex];
-    const filePath = path.join(__dirname, '../uploads/videos/', video.filename);
     
-    // Remover arquivo físico
+    // Deletar arquivo físico
+    const filePath = path.join(__dirname, '..', 'uploads', 'videos', video.filename);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }

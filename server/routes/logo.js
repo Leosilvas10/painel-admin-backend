@@ -23,97 +23,97 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({
-  storage: storage,
+const upload = multer({ 
+  storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp|svg/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-
-    if (mimetype && extname) {
-      return cb(null, true);
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
     } else {
-      cb(new Error('Apenas imagens são permitidas para o logo'));
+      cb(new Error('Apenas arquivos de imagem são permitidos'));
     }
-  }
-});
-
-// Upload de logo
-router.post('/upload', authMiddleware, upload.single('logo'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'Nenhum arquivo enviado' });
-    }
-
-    const logos = readData('logos');
-    
-    const logoData = {
-      id: Date.now().toString(),
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      path: `/uploads/logos/${req.file.filename}`,
-      size: req.file.size,
-      uploadedAt: new Date().toISOString()
-    };
-
-    logos.push(logoData);
-    writeData('logos', logos);
-
-    res.json({
-      message: 'Logo enviado com sucesso',
-      logo: logoData
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao fazer upload do logo' });
   }
 });
 
 // Obter logo atual
 router.get('/', (req, res) => {
   try {
-    const logos = readData('logos');
-    const currentLogo = logos.length > 0 ? logos[logos.length - 1] : null;
-    res.json(currentLogo);
+    const settings = readData('settings');
+    const logo = settings.find(s => s.key === 'logo');
+    res.json(logo || { key: 'logo', value: null });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao obter logo' });
   }
 });
 
-// Listar todos os logos
-router.get('/all', authMiddleware, (req, res) => {
+// Upload de logo
+router.post('/', authMiddleware, upload.single('logo'), (req, res) => {
   try {
-    const logos = readData('logos');
-    res.json(logos);
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nenhum arquivo de logo enviado' });
+    }
+
+    const settings = readData('settings');
+    const logoIndex = settings.findIndex(s => s.key === 'logo');
+
+    // Se já existe logo, deletar arquivo anterior
+    if (logoIndex !== -1 && settings[logoIndex].value) {
+      const oldFilename = path.basename(settings[logoIndex].value);
+      const oldFilePath = path.join(__dirname, '..', 'uploads', 'logos', oldFilename);
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+    }
+
+    const logoData = {
+      key: 'logo',
+      value: `/uploads/logos/${req.file.filename}`,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size,
+      updatedAt: new Date().toISOString()
+    };
+
+    if (logoIndex !== -1) {
+      settings[logoIndex] = logoData;
+    } else {
+      settings.push(logoData);
+    }
+
+    writeData('settings', settings);
+
+    res.json({ message: 'Logo atualizado com sucesso', logo: logoData });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao listar logos' });
+    res.status(500).json({ error: 'Erro ao fazer upload do logo' });
   }
 });
 
 // Deletar logo
-router.delete('/:id', authMiddleware, (req, res) => {
+router.delete('/', authMiddleware, (req, res) => {
   try {
-    const logos = readData('logos');
-    const logoIndex = logos.findIndex(l => l.id === req.params.id);
+    const settings = readData('settings');
+    const logoIndex = settings.findIndex(s => s.key === 'logo');
     
     if (logoIndex === -1) {
       return res.status(404).json({ error: 'Logo não encontrado' });
     }
     
-    const logo = logos[logoIndex];
-    const filePath = path.join(__dirname, '../uploads/logos/', logo.filename);
+    const logo = settings[logoIndex];
     
-    // Remover arquivo físico
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    // Deletar arquivo físico
+    if (logo.filename) {
+      const filePath = path.join(__dirname, '..', 'uploads', 'logos', logo.filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
     }
     
-    logos.splice(logoIndex, 1);
-    writeData('logos', logos);
+    settings[logoIndex] = { key: 'logo', value: null };
+    writeData('settings', settings);
     
-    res.json({ message: 'Logo deletado com sucesso' });
+    res.json({ message: 'Logo removido com sucesso' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao deletar logo' });
+    res.status(500).json({ error: 'Erro ao remover logo' });
   }
 });
 

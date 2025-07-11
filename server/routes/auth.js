@@ -12,7 +12,7 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     
     if (!username || !password) {
-      return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
+      return res.status(400).json({ error: 'Username e senha são obrigatórios' });
     }
     
     const users = readData('users');
@@ -23,6 +23,7 @@ router.post('/login', async (req, res) => {
     }
     
     const isValidPassword = await bcrypt.compare(password, user.password);
+    
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
@@ -40,7 +41,7 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao fazer login' });
+    res.status(500).json({ error: 'Erro no servidor' });
   }
 });
 
