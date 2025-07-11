@@ -1,7 +1,7 @@
-import express from 'express';
-import bcrypt from 'bcryptjs';
-import { authMiddleware } from '../middleware/auth.js';
-import { readData, writeData } from '../data/store.js';
+import express from "express";
+import bcrypt from "bcryptjs";
+import { authMiddleware } from "../middleware/auth.js";
+import { readData, writeData } from "../data/store.js";
 
 const router = express.Router();
 
@@ -9,12 +9,12 @@ const router = express.Router();
 router.get("/", authMiddleware, (req, res) => {
   try {
     const users = readData("users");
-    const safeUsers = users.map(user => ({
+    const safeUsers = users.map((user) => ({
       id: user.id,
       username: user.username,
       email: user.email,
       role: user.role,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
     }));
     res.json(safeUsers);
   } catch (error) {
@@ -29,7 +29,9 @@ router.post("/", authMiddleware, async (req, res) => {
     const { username, email, password, role } = req.body;
 
     // Verificar se usuário já existe
-    const existingUser = users.find(u => u.username === username || u.email === email);
+    const existingUser = users.find(
+      (u) => u.username === username || u.email === email,
+    );
     if (existingUser) {
       return res.status(400).json({ error: "Usuário ou email já existe" });
     }
@@ -42,7 +44,7 @@ router.post("/", authMiddleware, async (req, res) => {
       email,
       password: hashedPassword,
       role: role || "user",
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
 
     users.push(userData);
@@ -53,7 +55,7 @@ router.post("/", authMiddleware, async (req, res) => {
       username: userData.username,
       email: userData.email,
       role: userData.role,
-      createdAt: userData.createdAt
+      createdAt: userData.createdAt,
     };
 
     res.json({ message: "Usuário criado com sucesso", user: safeUser });
@@ -122,14 +124,16 @@ router.delete("/:id", authMiddleware, (req, res) => {
     const { id } = req.params;
     const users = readData("users");
 
-    const userIndex = users.findIndex(user => user.id === id);
+    const userIndex = users.findIndex((user) => user.id === id);
     if (userIndex === -1) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
     // Não permitir deletar o próprio usuário
     if (users[userIndex].id === req.user.id) {
-      return res.status(400).json({ error: "Não é possível deletar seu próprio usuário" });
+      return res
+        .status(400)
+        .json({ error: "Não é possível deletar seu próprio usuário" });
     }
 
     users.splice(userIndex, 1);

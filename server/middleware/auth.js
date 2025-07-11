@@ -4,7 +4,9 @@ import { readData } from "../data/store.js";
 const JWT_SECRET = process.env.JWT_SECRET || "sua-chave-secreta-super-secreta";
 
 export const generateToken = (user) => {
-  return jwt.sign({ id: user.id, userId: user.id }, JWT_SECRET, { expiresIn: "24h" });
+  return jwt.sign({ id: user.id, userId: user.id }, JWT_SECRET, {
+    expiresIn: "24h",
+  });
 };
 
 export const authMiddleware = (req, res, next) => {
@@ -28,5 +30,4 @@ export const authMiddleware = (req, res, next) => {
   } catch (error) {
     res.status(401).json({ error: "Token inválido" });
   }
-};
 };
