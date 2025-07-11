@@ -1,0 +1,73 @@
+
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const path = require('path');
+const fs = require('fs');
+
+const authRoutes = require('./routes/auth');
+const logoRoutes = require('./routes/logo');
+const videoRoutes = require('./routes/videos');
+const contentRoutes = require('./routes/content');
+const blockRoutes = require('./routes/blocks');
+const settingsRoutes = require('./routes/settings');
+const imageRoutes = require('./routes/images');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware de segurança
+app.use(helmet());
+app.use(cors());
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100 // máximo 100 requests por IP
+});
+app.use('/api/', limiter);
+
+// Middleware para parsing JSON
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Servir arquivos estáticos
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Criar diretórios necessários
+const uploadDirs = ['uploads', 'uploads/logos', 'uploads/videos', 'uploads/images'];
+uploadDirs.forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
+
+// Rotas da API
+app.use('/api/auth', authRoutes);
+app.use('/api/logo', logoRoutes);
+app.use('/api/videos', videoRoutes);
+app.use('/api/content', contentRoutes);
+app.use('/api/blocks', blockRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/images', imageRoutes);
+
+// Middleware de tratamento de erros
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    error: 'Algo deu errado!',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
+  });
+});
+
+// Rota 404
+app.use('*', (req, res) => {
+  res.status(404).json({ error: 'Rota não encontrada' });
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
+
+module.exports = app;

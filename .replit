@@ -17,3 +17,15 @@ publicDir = "dist"
 [[ports]]
 localPort = 5173
 externalPort = 80
+
+[workflows]
+runButton = "Backend Admin"
+
+[[workflows.workflow]]
+name = "Backend Admin"
+author = 41608291
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server/start.js"
