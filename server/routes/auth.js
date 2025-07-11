@@ -16,74 +16,61 @@ router.post('/login', async (req, res) => {
     }
 
     const users = readData('users');
-    const user = users.find(u => u.username === username || u.email === username);
+    const user = users.find(u => u.username === username);
 
     if (!user) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
-    // Para o usuário admin padrão, verificar senha diretamente se não estiver hasheada
-    let isPasswordValid = false;
-    if (user.password.startsWith('$2')) {
-      // Senha já está hasheada
-      isPasswordValid = await bcrypt.compare(password, user.password);
-    } else {
-      // Senha não hasheada (usuário padrão), comparar diretamente
-      isPasswordValid = password === user.password;
-    }
-
-    if (!isPasswordValid) {
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
-    const token = generateToken(user.id);
+    const token = generateToken(user);
 
-    res.json({
+    res.json({ 
       message: 'Login realizado com sucesso',
       token,
       user: {
         id: user.id,
         username: user.username,
-        role: user.role,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {
-    console.error('Erro no login:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 
 // Verificar token
 router.get('/verify', (req, res) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-
-  if (!token) {
-    return res.status(401).json({ error: 'Token não fornecido' });
-  }
-
   try {
-    const JWT_SECRET = process.env.JWT_SECRET || 'sua-chave-secreta-super-secreta';
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const token = req.headers.authorization?.split(' ')[1];
 
+    if (!token) {
+      return res.status(401).json({ error: 'Token não fornecido' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
     const users = readData('users');
-    const user = users.find(u => u.id === decoded.userId);
+    const user = users.find(u => u.id === decoded.id);
 
     if (!user) {
       return res.status(401).json({ error: 'Usuário não encontrado' });
     }
 
     res.json({
-      valid: true,
       user: {
         id: user.id,
         username: user.username,
-        role: user.role,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {
-    res.status(401).json({ error: 'Token inválido', valid: false });
+    res.status(401).json({ error: 'Token inválido' });
   }
 });
 

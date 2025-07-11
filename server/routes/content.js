@@ -4,106 +4,88 @@ import { readData, writeData } from '../data/store.js';
 
 const router = express.Router();
 
-// Listar conteúdos
-router.get('/', authMiddleware, (req, res) => {
+// Listar conteúdo
+router.get("/", (req, res) => {
   try {
-    const content = readData('content');
+    const content = readData("content");
     res.json(content);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao listar conteúdos' });
+    res.status(500).json({ error: "Erro ao listar conteúdo" });
   }
 });
 
 // Criar conteúdo
-router.post('/', authMiddleware, (req, res) => {
+router.post("/", authMiddleware, (req, res) => {
   try {
-    const content = readData('content');
-    const { title, type, data, active } = req.body;
+    const content = readData("content");
+    const { title, subtitle, description, type, order } = req.body;
 
-    if (!title || !type) {
-      return res.status(400).json({ error: 'Título e tipo são obrigatórios' });
-    }
-
-    const newContent = {
+    const contentData = {
       id: Date.now().toString(),
-      title,
-      type,
-      data: data || {},
-      active: active !== undefined ? active : true,
+      title: title || "",
+      subtitle: subtitle || "",
+      description: description || "",
+      type: type || "text",
+      order: order || 0,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    content.push(newContent);
-    writeData('content', content);
+    content.push(contentData);
+    writeData("content", content);
 
-    res.json({ message: 'Conteúdo criado com sucesso', content: newContent });
+    res.json({ message: "Conteúdo criado com sucesso", content: contentData });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao criar conteúdo' });
-  }
-});
-
-// Obter conteúdo específico
-router.get('/:id', authMiddleware, (req, res) => {
-  try {
-    const content = readData('content');
-    const item = content.find((c) => c.id === req.params.id);
-
-    if (!item) {
-      return res.status(404).json({ error: 'Conteúdo não encontrado' });
-    }
-
-    res.json(item);
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao buscar conteúdo' });
+    res.status(500).json({ error: "Erro ao criar conteúdo" });
   }
 });
 
 // Atualizar conteúdo
-router.put('/:id', authMiddleware, (req, res) => {
+router.put("/:id", authMiddleware, (req, res) => {
   try {
-    const content = readData('content');
-    const contentIndex = content.findIndex((c) => c.id === req.params.id);
+    const { id } = req.params;
+    const { title, subtitle, description, type, order } = req.body;
+    const content = readData("content");
 
+    const contentIndex = content.findIndex(item => item.id === id);
     if (contentIndex === -1) {
-      return res.status(404).json({ error: 'Conteúdo não encontrado' });
+      return res.status(404).json({ error: "Conteúdo não encontrado" });
     }
 
-    const { title, type, data, active } = req.body;
-    const updatedContent = {
+    content[contentIndex] = {
       ...content[contentIndex],
       title: title || content[contentIndex].title,
+      subtitle: subtitle || content[contentIndex].subtitle,
+      description: description || content[contentIndex].description,
       type: type || content[contentIndex].type,
-      data: data || content[contentIndex].data,
-      active: active !== undefined ? active : content[contentIndex].active,
-      updatedAt: new Date().toISOString(),
+      order: order !== undefined ? order : content[contentIndex].order,
+      updatedAt: new Date().toISOString()
     };
 
-    content[contentIndex] = updatedContent;
-    writeData('content', content);
-
-    res.json({ message: 'Conteúdo atualizado com sucesso', content: updatedContent });
+    writeData("content", content);
+    res.json({ message: "Conteúdo atualizado com sucesso", content: content[contentIndex] });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao atualizar conteúdo' });
+    res.status(500).json({ error: "Erro ao atualizar conteúdo" });
   }
 });
 
 // Deletar conteúdo
-router.delete('/:id', authMiddleware, (req, res) => {
+router.delete("/:id", authMiddleware, (req, res) => {
   try {
-    const content = readData('content');
-    const contentIndex = content.findIndex((c) => c.id === req.params.id);
+    const { id } = req.params;
+    const content = readData("content");
 
+    const contentIndex = content.findIndex(item => item.id === id);
     if (contentIndex === -1) {
-      return res.status(404).json({ error: 'Conteúdo não encontrado' });
+      return res.status(404).json({ error: "Conteúdo não encontrado" });
     }
 
     content.splice(contentIndex, 1);
-    writeData('content', content);
+    writeData("content", content);
 
-    res.json({ message: 'Conteúdo deletado com sucesso' });
+    res.json({ message: "Conteúdo deletado com sucesso" });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao deletar conteúdo' });
+    res.status(500).json({ error: "Erro ao deletar conteúdo" });
   }
 });
 

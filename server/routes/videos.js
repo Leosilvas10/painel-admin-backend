@@ -76,6 +76,116 @@ router.post("/upload", authMiddleware, upload.single("video"), (req, res) => {
   }
 });
 
+// Atualizar vídeo
+router.put("/:id", authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description } = req.body;
+    const videos = readData("videos");
+    
+    const videoIndex = videos.findIndex(video => video.id === id);
+    if (videoIndex === -1) {
+      return res.status(404).json({ error: "Vídeo não encontrado" });
+    }
+    
+    videos[videoIndex] = {
+      ...videos[videoIndex],
+      title: title || videos[videoIndex].title,
+      description: description || videos[videoIndex].description,
+      updatedAt: new Date().toISOString()
+    };
+    
+    writeData("videos", videos);
+    res.json({ message: "Vídeo atualizado com sucesso", video: videos[videoIndex] });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao atualizar vídeo" });
+  }
+});
+
+// Deletar vídeo
+router.delete("/:id", authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const videos = readData("videos");
+    
+    const videoIndex = videos.findIndex(video => video.id === id);
+    if (videoIndex === -1) {
+      return res.status(404).json({ error: "Vídeo não encontrado" });
+    }
+    
+    const video = videos[videoIndex];
+    
+    // Deletar arquivo físico
+    const filePath = path.join(__dirname, "..", "uploads", "videos", video.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    
+    videos.splice(videoIndex, 1);
+    writeData("videos", videos);
+    
+    res.json({ message: "Vídeo deletado com sucesso" });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao deletar vídeo" });
+  }
+});
+
+export default router;
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("video/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Apenas arquivos de vídeo são permitidos"));
+    }
+  },
+});
+
+// Listar vídeos
+router.get("/", authMiddleware, (req, res) => {
+  try {
+    const videos = readData("videos");
+    res.json(videos);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao listar vídeos" });
+  }
+});
+
+// Upload de vídeo
+router.post("/upload", authMiddleware, upload.single("video"), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Nenhum arquivo de vídeo enviado" });
+    }
+
+    const videos = readData("videos");
+    const { title, description } = req.body;
+
+    const videoData = {
+      id: Date.now().toString(),
+      title: title || req.file.originalname,
+      description: description || "",
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      path: `/uploads/videos/${req.file.filename}`,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    videos.push(videoData);
+    writeData("videos", videos);
+
+    res.json({ message: "Vídeo enviado com sucesso", video: videoData });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao fazer upload do vídeo" });
+  }
+});
+
 // Obter vídeo específico
 router.get("/:id", authMiddleware, (req, res) => {
   try {

@@ -1,7 +1,7 @@
-import express from "express";
-import bcrypt from "bcryptjs";
-import { authMiddleware } from "../middleware/auth.js";
-import { readData, writeData } from "../data/store.js";
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import { authMiddleware } from '../middleware/auth.js';
+import { readData, writeData } from '../data/store.js';
 
 const router = express.Router();
 
@@ -9,8 +9,14 @@ const router = express.Router();
 router.get("/", authMiddleware, (req, res) => {
   try {
     const users = readData("users");
-    const usersWithoutPasswords = users.map(({ password, ...user }) => user);
-    res.json(usersWithoutPasswords);
+    const safeUsers = users.map(user => ({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt
+    }));
+    res.json(safeUsers);
   } catch (error) {
     res.status(500).json({ error: "Erro ao listar usuários" });
   }
@@ -22,10 +28,6 @@ router.post("/", authMiddleware, async (req, res) => {
     const users = readData("users");
     const { username, email, password, role } = req.body;
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: "Username, email e senha são obrigatórios" });
-    }
-
     // Verificar se usuário já existe
     const existingUser = users.find(u => u.username === username || u.email === email);
     if (existingUser) {
@@ -34,21 +36,27 @@ router.post("/", authMiddleware, async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = {
+    const userData = {
       id: Date.now().toString(),
       username,
       email,
       password: hashedPassword,
       role: role || "user",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     };
 
-    users.push(user);
+    users.push(userData);
     writeData("users", users);
 
-    const { password: _, ...userWithoutPassword } = user;
-    res.json({ message: "Usuário criado com sucesso", user: userWithoutPassword });
+    const safeUser = {
+      id: userData.id,
+      username: userData.username,
+      email: userData.email,
+      role: userData.role,
+      createdAt: userData.createdAt
+    };
+
+    res.json({ message: "Usuário criado com sucesso", user: safeUser });
   } catch (error) {
     res.status(500).json({ error: "Erro ao criar usuário" });
   }
@@ -111,9 +119,10 @@ router.put("/:id", authMiddleware, async (req, res) => {
 // Deletar usuário
 router.delete("/:id", authMiddleware, (req, res) => {
   try {
+    const { id } = req.params;
     const users = readData("users");
-    const userIndex = users.findIndex((u) => u.id === req.params.id);
 
+    const userIndex = users.findIndex(user => user.id === id);
     if (userIndex === -1) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }

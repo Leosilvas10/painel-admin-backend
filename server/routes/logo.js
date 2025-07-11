@@ -38,6 +38,117 @@ const upload = multer({
 router.get("/", (req, res) => {
   try {
     const logos = readData("logos");
+    const currentLogo = logos.find(logo => logo.active) || logos[0];
+    res.json(currentLogo || null);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao obter logo" });
+  }
+});
+
+// Upload de logo
+router.post("/upload", authMiddleware, upload.single("logo"), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Nenhum arquivo de logo enviado" });
+    }
+
+    const logos = readData("logos");
+    const { alt } = req.body;
+
+    // Desativar logo anterior
+    logos.forEach(logo => logo.active = false);
+
+    const logoData = {
+      id: Date.now().toString(),
+      alt: alt || "Logo",
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      path: `/uploads/logos/${req.file.filename}`,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+      active: true,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    logos.push(logoData);
+    writeData("logos", logos);
+
+    res.json({ message: "Logo enviado com sucesso", logo: logoData });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao fazer upload do logo" });
+  }
+});
+
+// Ativar logo
+router.put("/:id/activate", authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const logos = readData("logos");
+    
+    const logoIndex = logos.findIndex(logo => logo.id === id);
+    if (logoIndex === -1) {
+      return res.status(404).json({ error: "Logo não encontrado" });
+    }
+    
+    // Desativar todos os logos
+    logos.forEach(logo => logo.active = false);
+    
+    // Ativar o logo selecionado
+    logos[logoIndex].active = true;
+    
+    writeData("logos", logos);
+    res.json({ message: "Logo ativado com sucesso", logo: logos[logoIndex] });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao ativar logo" });
+  }
+});
+
+// Deletar logo
+router.delete("/:id", authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const logos = readData("logos");
+    
+    const logoIndex = logos.findIndex(logo => logo.id === id);
+    if (logoIndex === -1) {
+      return res.status(404).json({ error: "Logo não encontrado" });
+    }
+    
+    const logo = logos[logoIndex];
+    
+    // Deletar arquivo físico
+    const filePath = path.join(__dirname, "..", "uploads", "logos", logo.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    
+    logos.splice(logoIndex, 1);
+    writeData("logos", logos);
+    
+    res.json({ message: "Logo deletado com sucesso" });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao deletar logo" });
+  }
+});
+
+export default router;);
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Apenas arquivos de imagem são permitidos"));
+    }
+  },
+});
+
+// Obter logo atual
+router.get("/", (req, res) => {
+  try {
+    const logos = readData("logos");
     const currentLogo = logos.find((logo) => logo.active === true);
 
     if (!currentLogo) {

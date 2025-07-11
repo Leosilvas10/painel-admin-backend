@@ -1,7 +1,6 @@
-
-import express from "express";
-import { authMiddleware } from "../middleware/auth.js";
-import { readData, writeData } from "../data/store.js";
+import express from 'express';
+import { authMiddleware } from '../middleware/auth.js';
+import { readData, writeData } from '../data/store.js';
 
 const router = express.Router();
 
@@ -19,82 +18,54 @@ router.get("/", authMiddleware, (req, res) => {
 router.post("/", authMiddleware, (req, res) => {
   try {
     const forms = readData("forms");
-    const { name, fields, settings } = req.body;
+    const { name, email, message, phone } = req.body;
 
-    if (!name || !fields) {
-      return res.status(400).json({ error: "Nome e campos são obrigatórios" });
-    }
-
-    const form = {
+    const formData = {
       id: Date.now().toString(),
-      name,
-      fields,
-      settings: settings || {},
-      submissions: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      name: name || "",
+      email: email || "",
+      message: message || "",
+      phone: phone || "",
+      read: false,
+      createdAt: new Date().toISOString()
     };
 
-    forms.push(form);
+    forms.push(formData);
     writeData("forms", forms);
 
-    res.json({ message: "Formulário criado com sucesso", form });
+    res.json({ message: "Formulário enviado com sucesso", form: formData });
   } catch (error) {
-    res.status(500).json({ error: "Erro ao criar formulário" });
+    res.status(500).json({ error: "Erro ao enviar formulário" });
   }
 });
 
-// Obter formulário específico
-router.get("/:id", authMiddleware, (req, res) => {
+// Marcar como lido
+router.put("/:id/read", authMiddleware, (req, res) => {
   try {
+    const { id } = req.params;
     const forms = readData("forms");
-    const form = forms.find((f) => f.id === req.params.id);
 
-    if (!form) {
-      return res.status(404).json({ error: "Formulário não encontrado" });
-    }
-
-    res.json(form);
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar formulário" });
-  }
-});
-
-// Atualizar formulário
-router.put("/:id", authMiddleware, (req, res) => {
-  try {
-    const forms = readData("forms");
-    const formIndex = forms.findIndex((f) => f.id === req.params.id);
-
+    const formIndex = forms.findIndex(form => form.id === id);
     if (formIndex === -1) {
       return res.status(404).json({ error: "Formulário não encontrado" });
     }
 
-    const { name, fields, settings } = req.body;
-    forms[formIndex] = {
-      ...forms[formIndex],
-      name: name || forms[formIndex].name,
-      fields: fields || forms[formIndex].fields,
-      settings: settings || forms[formIndex].settings,
-      updatedAt: new Date().toISOString(),
-    };
+    forms[formIndex].read = true;
 
     writeData("forms", forms);
-    res.json({
-      message: "Formulário atualizado com sucesso",
-      form: forms[formIndex],
-    });
+    res.json({ message: "Formulário marcado como lido", form: forms[formIndex] });
   } catch (error) {
-    res.status(500).json({ error: "Erro ao atualizar formulário" });
+    res.status(500).json({ error: "Erro ao marcar formulário como lido" });
   }
 });
 
 // Deletar formulário
 router.delete("/:id", authMiddleware, (req, res) => {
   try {
+    const { id } = req.params;
     const forms = readData("forms");
-    const formIndex = forms.findIndex((f) => f.id === req.params.id);
 
+    const formIndex = forms.findIndex(form => form.id === id);
     if (formIndex === -1) {
       return res.status(404).json({ error: "Formulário não encontrado" });
     }
@@ -105,31 +76,6 @@ router.delete("/:id", authMiddleware, (req, res) => {
     res.json({ message: "Formulário deletado com sucesso" });
   } catch (error) {
     res.status(500).json({ error: "Erro ao deletar formulário" });
-  }
-});
-
-// Submeter formulário (público)
-router.post("/:id/submit", (req, res) => {
-  try {
-    const forms = readData("forms");
-    const formIndex = forms.findIndex((f) => f.id === req.params.id);
-
-    if (formIndex === -1) {
-      return res.status(404).json({ error: "Formulário não encontrado" });
-    }
-
-    const submission = {
-      id: Date.now().toString(),
-      data: req.body,
-      submittedAt: new Date().toISOString(),
-    };
-
-    forms[formIndex].submissions.push(submission);
-    writeData("forms", forms);
-
-    res.json({ message: "Formulário enviado com sucesso" });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao enviar formulário" });
   }
 });
 

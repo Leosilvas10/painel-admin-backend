@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(null, "image-" + uniqueSuffix + path.extname(file.originalname));
   },
-});
+}););
 
 const upload = multer({
   storage,
@@ -75,6 +75,64 @@ router.post("/upload", authMiddleware, upload.single("image"), (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Erro ao fazer upload da imagem" });
   }
+});
+
+// Atualizar imagem
+router.put("/:id", authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, alt } = req.body;
+    const images = readData("images");
+    
+    const imageIndex = images.findIndex(img => img.id === id);
+    if (imageIndex === -1) {
+      return res.status(404).json({ error: "Imagem não encontrada" });
+    }
+    
+    images[imageIndex] = {
+      ...images[imageIndex],
+      title: title || images[imageIndex].title,
+      description: description || images[imageIndex].description,
+      alt: alt || images[imageIndex].alt,
+      updatedAt: new Date().toISOString()
+    };
+    
+    writeData("images", images);
+    res.json({ message: "Imagem atualizada com sucesso", image: images[imageIndex] });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao atualizar imagem" });
+  }
+});
+
+// Deletar imagem
+router.delete("/:id", authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const images = readData("images");
+    
+    const imageIndex = images.findIndex(img => img.id === id);
+    if (imageIndex === -1) {
+      return res.status(404).json({ error: "Imagem não encontrada" });
+    }
+    
+    const image = images[imageIndex];
+    
+    // Deletar arquivo físico
+    const filePath = path.join(__dirname, "..", "uploads", "images", image.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    
+    images.splice(imageIndex, 1);
+    writeData("images", images);
+    
+    res.json({ message: "Imagem deletada com sucesso" });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao deletar imagem" });
+  }
+});
+
+export default router;
 });
 
 // Obter imagem específica
