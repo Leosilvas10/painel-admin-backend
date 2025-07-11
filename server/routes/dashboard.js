@@ -1,19 +1,18 @@
-
 import express from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { readData } from '../data/store.js';
 
 const router = express.Router();
 
-// Obter estatísticas gerais do dashboard
+// Obter estatísticas do dashboard
 router.get('/stats', authMiddleware, (req, res) => {
   try {
     const videos = readData('videos');
     const images = readData('images');
     const blocks = readData('blocks');
     const forms = readData('forms');
-    const users = readData('users');
     const submissions = readData('submissions');
+    const users = readData('users');
 
     // Calcular estatísticas
     const stats = {

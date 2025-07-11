@@ -72,8 +72,8 @@ router.post('/upload', authMiddleware, upload.single('video'), (req, res) => {
   }
 });
 
-// Listar todos os vídeos
-router.get('/', (req, res) => {
+// Listar vídeos
+router.get('/', authMiddleware, (req, res) => {
   try {
     const videos = readData('videos');
     res.json(videos);
@@ -82,8 +82,8 @@ router.get('/', (req, res) => {
   }
 });
 
-// Obter vídeo específico
-router.get('/:id', (req, res) => {
+// Obter vídeo por ID
+router.get('/:id', authMiddleware, (req, res) => {
   try {
     const videos = readData('videos');
     const video = videos.find(v => v.id === req.params.id);
@@ -98,7 +98,7 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// Atualizar metadados do vídeo
+// Atualizar vídeo
 router.put('/:id', authMiddleware, (req, res) => {
   try {
     const videos = readData('videos');
@@ -107,7 +107,7 @@ router.put('/:id', authMiddleware, (req, res) => {
     if (videoIndex === -1) {
       return res.status(404).json({ error: 'Vídeo não encontrado' });
     }
-
+    
     const { title, description } = req.body;
     videos[videoIndex] = {
       ...videos[videoIndex],
@@ -115,18 +115,15 @@ router.put('/:id', authMiddleware, (req, res) => {
       description: description || videos[videoIndex].description,
       updatedAt: new Date().toISOString()
     };
-
+    
     writeData('videos', videos);
-    res.json({
-      message: 'Vídeo atualizado com sucesso',
-      video: videos[videoIndex]
-    });
+    res.json({ message: 'Vídeo atualizado com sucesso', video: videos[videoIndex] });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao atualizar vídeo' });
   }
 });
 
-// Excluir vídeo
+// Deletar vídeo
 router.delete('/:id', authMiddleware, (req, res) => {
   try {
     const videos = readData('videos');
@@ -135,20 +132,21 @@ router.delete('/:id', authMiddleware, (req, res) => {
     if (videoIndex === -1) {
       return res.status(404).json({ error: 'Vídeo não encontrado' });
     }
-
+    
     const video = videos[videoIndex];
     const filePath = path.join(__dirname, '../uploads/videos/', video.filename);
     
+    // Remover arquivo físico
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
-
+    
     videos.splice(videoIndex, 1);
     writeData('videos', videos);
-
-    res.json({ message: 'Vídeo excluído com sucesso' });
+    
+    res.json({ message: 'Vídeo deletado com sucesso' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao excluir vídeo' });
+    res.status(500).json({ error: 'Erro ao deletar vídeo' });
   }
 });
 

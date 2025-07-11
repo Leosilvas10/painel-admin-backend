@@ -1,22 +1,32 @@
 
 import jwt from 'jsonwebtoken';
+import { readData } from '../data/store.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'admin_secret_key_change_in_production';
+const JWT_SECRET = process.env.JWT_SECRET || 'sua-chave-secreta-super-secreta';
 
-const authMiddleware = (req, res, next) => {
+export const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
-
+  
   if (!token) {
     return res.status(401).json({ error: 'Token de acesso requerido' });
   }
-
+  
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+    const users = readData('users');
+    const user = users.find(u => u.id === decoded.userId);
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Usuário não encontrado' });
+    }
+    
+    req.user = user;
     next();
   } catch (error) {
     res.status(401).json({ error: 'Token inválido' });
   }
 };
 
-export { authMiddleware, JWT_SECRET };
+export const generateToken = (userId) => {
+  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '24h' });
+};

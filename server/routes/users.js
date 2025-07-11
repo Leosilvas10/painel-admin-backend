@@ -1,4 +1,3 @@
-
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import { authMiddleware } from '../middleware/auth.js';
@@ -6,61 +5,52 @@ import { readData, writeData } from '../data/store.js';
 
 const router = express.Router();
 
-// Listar todos os usuários
+// Listar usuários
 router.get('/', authMiddleware, (req, res) => {
   try {
     const users = readData('users');
-    // Remover senhas da resposta
-    const safeUsers = users.map(user => {
-      const { password, ...safeUser } = user;
-      return safeUser;
-    });
+    const safeUsers = users.map(user => ({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      createdAt: user.createdAt
+    }));
     res.json(safeUsers);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar usuários' });
   }
 });
 
-// Criar novo usuário
+// Criar usuário
 router.post('/', authMiddleware, async (req, res) => {
   try {
+    const { username, email, password, role } = req.body;
     const users = readData('users');
-    const { username, email, password, role, status } = req.body;
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: 'Username, email e password são obrigatórios' });
+    // Verificar se usuário já existe
+    const existingUser = users.find(u => u.username === username || u.email === email);
+    if (existingUser) {
+      return res.status(400).json({ error: 'Usuário já existe' });
     }
 
-    // Verificar se username ou email já existem
-    if (users.find(u => u.username === username || u.email === email)) {
-      return res.status(400).json({ error: 'Username ou email já existem' });
-    }
-
-    // Hash da senha
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = {
+    const userData = {
       id: Date.now().toString(),
       username,
       email,
       password: hashedPassword,
       role: role || 'editor',
-      status: status || 'active',
-      lastLogin: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      status: 'active',
+      createdAt: new Date().toISOString()
     };
 
-    users.push(newUser);
+    users.push(userData);
     writeData('users', users);
 
-    // Remover senha da resposta
-    const { password: _, ...safeUser } = newUser;
-
-    res.status(201).json({
-      message: 'Usuário criado com sucesso',
-      user: safeUser
-    });
+    const { password: _, ...safeUser } = userData;
+    res.json({ message: 'Usuário criado com sucesso', user: safeUser });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao criar usuário' });
   }

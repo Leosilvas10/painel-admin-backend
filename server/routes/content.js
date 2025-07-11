@@ -1,56 +1,38 @@
-
 import express from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { readData, writeData } from '../data/store.js';
 
 const router = express.Router();
 
-// Listar todas as seções
-router.get('/sections', (req, res) => {
+// Obter conteúdo
+router.get('/', (req, res) => {
   try {
-    const sections = readData('sections');
-    res.json(sections);
+    const content = readData('content');
+    res.json(content.length > 0 ? content[0] : {});
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao listar seções' });
+    res.status(500).json({ error: 'Erro ao obter conteúdo' });
   }
 });
 
-// Obter conteúdo de seção específica
-router.get('/sections/:section', (req, res) => {
+// Atualizar conteúdo
+router.put('/', authMiddleware, (req, res) => {
   try {
-    const sections = readData('sections');
-    const section = sections[req.params.section];
-    
-    if (!section) {
-      return res.status(404).json({ error: 'Seção não encontrada' });
-    }
-    
-    res.json(section);
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter seção' });
-  }
-});
-
-// Atualizar conteúdo de seção
-router.put('/sections/:section', authMiddleware, (req, res) => {
-  try {
-    const sections = readData('sections');
-    const sectionName = req.params.section;
-    
-    sections[sectionName] = {
-      ...sections[sectionName],
+    const content = readData('content');
+    const newContent = {
       ...req.body,
       updatedAt: new Date().toISOString()
     };
 
-    writeData('sections', sections);
-    
-    res.json({
-      message: 'Seção atualizada com sucesso',
-      section: sections[sectionName]
-    });
+    if (content.length > 0) {
+      content[0] = { ...content[0], ...newContent };
+    } else {
+      content.push({ id: '1', ...newContent, createdAt: new Date().toISOString() });
+    }
+
+    writeData('content', content);
+    res.json({ message: 'Conteúdo atualizado com sucesso', content: content[0] });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao atualizar seção' });
+    res.status(500).json({ error: 'Erro ao atualizar conteúdo' });
   }
 });
 

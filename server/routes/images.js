@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'img-' + uniqueSuffix + path.extname(file.originalname));
+    cb(null, 'image-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
@@ -73,50 +73,80 @@ router.post('/upload', authMiddleware, upload.single('image'), (req, res) => {
 });
 
 // Listar imagens
-router.get('/', (req, res) => {
+router.get('/', authMiddleware, (req, res) => {
   try {
     const images = readData('images');
-    const { category, limit } = req.query;
-    
-    let filteredImages = images;
-    
-    if (category) {
-      filteredImages = images.filter(img => img.category === category);
-    }
-    
-    if (limit) {
-      filteredImages = filteredImages.slice(0, parseInt(limit));
-    }
-    
-    res.json(filteredImages);
+    res.json(images);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar imagens' });
   }
 });
 
-// Excluir imagem
-router.delete('/:id', authMiddleware, (req, res) => {
+// Obter imagem por ID
+router.get('/:id', authMiddleware, (req, res) => {
   try {
     const images = readData('images');
-    const imageIndex = images.findIndex(img => img.id === req.params.id);
+    const image = images.find(i => i.id === req.params.id);
+    
+    if (!image) {
+      return res.status(404).json({ error: 'Imagem não encontrada' });
+    }
+    
+    res.json(image);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao obter imagem' });
+  }
+});
+
+// Atualizar imagem
+router.put('/:id', authMiddleware, (req, res) => {
+  try {
+    const images = readData('images');
+    const imageIndex = images.findIndex(i => i.id === req.params.id);
     
     if (imageIndex === -1) {
       return res.status(404).json({ error: 'Imagem não encontrada' });
     }
+    
+    const { alt, category } = req.body;
+    images[imageIndex] = {
+      ...images[imageIndex],
+      alt: alt || images[imageIndex].alt,
+      category: category || images[imageIndex].category,
+      updatedAt: new Date().toISOString()
+    };
+    
+    writeData('images', images);
+    res.json({ message: 'Imagem atualizada com sucesso', image: images[imageIndex] });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao atualizar imagem' });
+  }
+});
 
+// Deletar imagem
+router.delete('/:id', authMiddleware, (req, res) => {
+  try {
+    const images = readData('images');
+    const imageIndex = images.findIndex(i => i.id === req.params.id);
+    
+    if (imageIndex === -1) {
+      return res.status(404).json({ error: 'Imagem não encontrada' });
+    }
+    
     const image = images[imageIndex];
     const filePath = path.join(__dirname, '../uploads/images/', image.filename);
     
+    // Remover arquivo físico
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
-
+    
     images.splice(imageIndex, 1);
     writeData('images', images);
-
-    res.json({ message: 'Imagem excluída com sucesso' });
+    
+    res.json({ message: 'Imagem deletada com sucesso' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao excluir imagem' });
+    res.status(500).json({ error: 'Erro ao deletar imagem' });
   }
 });
 

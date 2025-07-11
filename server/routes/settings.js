@@ -1,67 +1,38 @@
-
 import express from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { readData, writeData } from '../data/store.js';
 
 const router = express.Router();
 
-// Obter todas as configurações
+// Obter configurações
 router.get('/', (req, res) => {
   try {
     const settings = readData('settings');
-    res.json(settings);
+    res.json(settings.length > 0 ? settings[0] : {});
   } catch (error) {
     res.status(500).json({ error: 'Erro ao obter configurações' });
   }
 });
 
-// Atualizar configurações gerais
+// Atualizar configurações
 router.put('/', authMiddleware, (req, res) => {
   try {
     const settings = readData('settings');
-    
-    const updatedSettings = {
-      ...settings,
+    const newSettings = {
       ...req.body,
       updatedAt: new Date().toISOString()
     };
 
-    writeData('settings', updatedSettings);
-    
-    res.json({
-      message: 'Configurações atualizadas com sucesso',
-      settings: updatedSettings
-    });
+    if (settings.length > 0) {
+      settings[0] = { ...settings[0], ...newSettings };
+    } else {
+      settings.push({ id: '1', ...newSettings, createdAt: new Date().toISOString() });
+    }
+
+    writeData('settings', settings);
+    res.json({ message: 'Configurações atualizadas com sucesso', settings: settings[0] });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao atualizar configurações' });
-  }
-});
-
-// Atualizar configurações de SEO
-router.put('/seo', authMiddleware, (req, res) => {
-  try {
-    const settings = readData('settings');
-    const { metaTitle, metaDescription, metaKeywords, ogTitle, ogDescription, ogImage } = req.body;
-    
-    const updatedSettings = {
-      ...settings,
-      metaTitle: metaTitle || settings.metaTitle,
-      metaDescription: metaDescription || settings.metaDescription,
-      metaKeywords: metaKeywords || settings.metaKeywords,
-      ogTitle: ogTitle || settings.ogTitle,
-      ogDescription: ogDescription || settings.ogDescription,
-      ogImage: ogImage || settings.ogImage,
-      updatedAt: new Date().toISOString()
-    };
-
-    writeData('settings', updatedSettings);
-    
-    res.json({
-      message: 'Configurações de SEO atualizadas com sucesso',
-      settings: updatedSettings
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao atualizar configurações de SEO' });
   }
 });
 

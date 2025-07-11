@@ -1,62 +1,81 @@
 
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { authMiddleware, JWT_SECRET } from '../middleware/auth.js';
+import { readData, writeData } from '../data/store.js';
+import { generateToken } from '../middleware/auth.js';
 
 const router = express.Router();
-
-// Usuário admin padrão (em produção, usar banco de dados)
-const ADMIN_USER = {
-  id: 1,
-  username: 'admin',
-  password: '$2b$10$1HX59jkPqUUjO2nZnxQOtuhbCxwkRnimvQUBDfiLqN/vUu8/VVAu6'
-};
 
 // Login
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-
+    
     if (!username || !password) {
-      return res.status(400).json({ error: 'Username e password são obrigatórios' });
+      return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
     }
-
-    if (username !== ADMIN_USER.username) {
+    
+    const users = readData('users');
+    const user = users.find(u => u.username === username);
+    
+    if (!user) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
-
-    // Usar bcrypt para validar a senha
-    const isValidPassword = await bcrypt.compare(password, ADMIN_USER.password);
     
+    const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
-
-    const token = jwt.sign(
-      { id: ADMIN_USER.id, username: ADMIN_USER.username },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
+    
+    const token = generateToken(user.id);
+    
     res.json({
       message: 'Login realizado com sucesso',
       token,
-      user: { id: ADMIN_USER.id, username: ADMIN_USER.username }
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        email: user.email
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    res.status(500).json({ error: 'Erro ao fazer login' });
   }
 });
 
-// Logout
-router.post('/logout', authMiddleware, (req, res) => {
-  res.json({ message: 'Logout realizado com sucesso' });
-});
-
-// Verificar autenticação
-router.get('/me', authMiddleware, (req, res) => {
-  res.json({ user: req.user });
+// Verificar token
+router.get('/verify', (req, res) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Token não fornecido' });
+  }
+  
+  try {
+    const jwt = require('jsonwebtoken');
+    const JWT_SECRET = process.env.JWT_SECRET || 'sua-chave-secreta-super-secreta';
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    const users = readData('users');
+    const user = users.find(u => u.id === decoded.userId);
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Usuário não encontrado' });
+    }
+    
+    res.json({
+      valid: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    res.status(401).json({ error: 'Token inválido', valid: false });
+  }
 });
 
 export default router;
