@@ -17,29 +17,32 @@ router.get('/', authMiddleware, (req, res) => {
 // Criar formulário
 router.post('/', authMiddleware, (req, res) => {
   try {
-    const { name, fields, settings } = req.body;
     const forms = readData('forms');
+    const { name, fields, settings } = req.body;
 
-    const formData = {
+    if (!name || !fields) {
+      return res.status(400).json({ error: 'Nome e campos são obrigatórios' });
+    }
+
+    const form = {
       id: Date.now().toString(),
-      name: name || 'Formulário sem nome',
-      fields: fields || [],
+      name,
+      fields,
       settings: settings || {},
-      submissions: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
-    forms.push(formData);
+    forms.push(form);
     writeData('forms', forms);
 
-    res.json({ message: 'Formulário criado com sucesso', form: formData });
+    res.json({ message: 'Formulário criado com sucesso', form });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao criar formulário' });
   }
 });
 
-// Obter formulário por ID
+// Obter formulário específico
 router.get('/:id', authMiddleware, (req, res) => {
   try {
     const forms = readData('forms');
@@ -51,7 +54,7 @@ router.get('/:id', authMiddleware, (req, res) => {
 
     res.json(form);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter formulário' });
+    res.status(500).json({ error: 'Erro ao buscar formulário' });
   }
 });
 
@@ -97,49 +100,6 @@ router.delete('/:id', authMiddleware, (req, res) => {
     res.json({ message: 'Formulário deletado com sucesso' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao deletar formulário' });
-  }
-});
-
-// Submeter formulário (público)
-router.post('/:id/submit', (req, res) => {
-  try {
-    const forms = readData('forms');
-    const form = forms.find(f => f.id === req.params.id);
-
-    if (!form) {
-      return res.status(404).json({ error: 'Formulário não encontrado' });
-    }
-
-    if (!form.settings?.enabled) {
-      return res.status(400).json({ error: 'Formulário desabilitado' });
-    }
-
-    const submissions = readData('submissions');
-    const submissionData = {
-      id: Date.now().toString(),
-      formId: req.params.id,
-      data: req.body,
-      submittedAt: new Date().toISOString(),
-      ip: req.ip
-    };
-
-    submissions.push(submissionData);
-    writeData('submissions', submissions);
-
-    res.json({ message: 'Formulário enviado com sucesso' });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao enviar formulário' });
-  }
-});
-
-// Obter submissões
-router.get('/:id/submissions', authMiddleware, (req, res) => {
-  try {
-    const submissions = readData('submissions');
-    const formSubmissions = submissions.filter(s => s.formId === req.params.id);
-    res.json(formSubmissions);
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter submissões' });
   }
 });
 

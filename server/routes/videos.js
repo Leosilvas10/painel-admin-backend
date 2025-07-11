@@ -77,7 +77,7 @@ router.post('/', authMiddleware, upload.single('video'), (req, res) => {
   }
 });
 
-// Obter vídeo por ID
+// Obter vídeo específico
 router.get('/:id', authMiddleware, (req, res) => {
   try {
     const videos = readData('videos');
@@ -89,7 +89,7 @@ router.get('/:id', authMiddleware, (req, res) => {
     
     res.json(video);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter vídeo' });
+    res.status(500).json({ error: 'Erro ao buscar vídeo' });
   }
 });
 
@@ -131,7 +131,7 @@ router.delete('/:id', authMiddleware, (req, res) => {
     const video = videos[videoIndex];
     
     // Deletar arquivo físico
-    const filePath = path.join(__dirname, '..', 'uploads', 'videos', video.filename);
+    const filePath = path.join(process.cwd(), 'server/uploads/videos', video.filename);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }

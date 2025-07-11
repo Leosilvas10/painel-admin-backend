@@ -18,29 +18,34 @@ router.get('/', authMiddleware, (req, res) => {
 // Criar bloco
 router.post('/', authMiddleware, (req, res) => {
   try {
-    const { title, content, type, position } = req.body;
     const blocks = readData('blocks');
+    const { name, type, content, position } = req.body;
 
-    const blockData = {
+    if (!name || !type) {
+      return res.status(400).json({ error: 'Nome e tipo são obrigatórios' });
+    }
+
+    const block = {
       id: Date.now().toString(),
-      title: title || 'Bloco sem título',
-      content: content || '',
-      type: type || 'text',
+      name,
+      type,
+      content: content || {},
       position: position || 0,
+      active: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
-    blocks.push(blockData);
+    blocks.push(block);
     writeData('blocks', blocks);
 
-    res.json({ message: 'Bloco criado com sucesso', block: blockData });
+    res.json({ message: 'Bloco criado com sucesso', block });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao criar bloco' });
   }
 });
 
-// Obter bloco por ID
+// Obter bloco específico
 router.get('/:id', authMiddleware, (req, res) => {
   try {
     const blocks = readData('blocks');
@@ -52,7 +57,7 @@ router.get('/:id', authMiddleware, (req, res) => {
     
     res.json(block);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter bloco' });
+    res.status(500).json({ error: 'Erro ao buscar bloco' });
   }
 });
 
@@ -66,13 +71,14 @@ router.put('/:id', authMiddleware, (req, res) => {
       return res.status(404).json({ error: 'Bloco não encontrado' });
     }
     
-    const { title, content, type, position } = req.body;
+    const { name, type, content, position, active } = req.body;
     blocks[blockIndex] = {
       ...blocks[blockIndex],
-      title: title || blocks[blockIndex].title,
-      content: content || blocks[blockIndex].content,
+      name: name || blocks[blockIndex].name,
       type: type || blocks[blockIndex].type,
+      content: content || blocks[blockIndex].content,
       position: position !== undefined ? position : blocks[blockIndex].position,
+      active: active !== undefined ? active : blocks[blockIndex].active,
       updatedAt: new Date().toISOString()
     };
     

@@ -77,11 +77,11 @@ router.post('/', authMiddleware, upload.single('image'), (req, res) => {
   }
 });
 
-// Obter imagem por ID
+// Obter imagem específica
 router.get('/:id', authMiddleware, (req, res) => {
   try {
     const images = readData('images');
-    const image = images.find(i => i.id === req.params.id);
+    const image = images.find(img => img.id === req.params.id);
     
     if (!image) {
       return res.status(404).json({ error: 'Imagem não encontrada' });
@@ -89,7 +89,7 @@ router.get('/:id', authMiddleware, (req, res) => {
     
     res.json(image);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter imagem' });
+    res.status(500).json({ error: 'Erro ao buscar imagem' });
   }
 });
 
@@ -97,7 +97,7 @@ router.get('/:id', authMiddleware, (req, res) => {
 router.put('/:id', authMiddleware, (req, res) => {
   try {
     const images = readData('images');
-    const imageIndex = images.findIndex(i => i.id === req.params.id);
+    const imageIndex = images.findIndex(img => img.id === req.params.id);
     
     if (imageIndex === -1) {
       return res.status(404).json({ error: 'Imagem não encontrada' });
@@ -122,7 +122,7 @@ router.put('/:id', authMiddleware, (req, res) => {
 router.delete('/:id', authMiddleware, (req, res) => {
   try {
     const images = readData('images');
-    const imageIndex = images.findIndex(i => i.id === req.params.id);
+    const imageIndex = images.findIndex(img => img.id === req.params.id);
     
     if (imageIndex === -1) {
       return res.status(404).json({ error: 'Imagem não encontrada' });
@@ -131,7 +131,7 @@ router.delete('/:id', authMiddleware, (req, res) => {
     const image = images[imageIndex];
     
     // Deletar arquivo físico
-    const filePath = path.join(__dirname, '..', 'uploads', 'images', image.filename);
+    const filePath = path.join(process.cwd(), 'server/uploads/images', image.filename);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }

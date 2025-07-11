@@ -1,82 +1,87 @@
+
 import express from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { readData, writeData } from '../data/store.js';
 
 const router = express.Router();
 
-// Listar conteúdo
-router.get('/', (req, res) => {
+// Listar conteúdos
+router.get('/', authMiddleware, (req, res) => {
   try {
-    const content = readData('content');
-    res.json(content);
+    const contents = readData('contents');
+    res.json(contents);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao listar conteúdo' });
+    res.status(500).json({ error: 'Erro ao listar conteúdos' });
   }
 });
 
 // Criar conteúdo
 router.post('/', authMiddleware, (req, res) => {
   try {
+    const contents = readData('contents');
     const { title, body, type, status } = req.body;
-    const content = readData('content');
 
-    const contentData = {
+    if (!title || !body) {
+      return res.status(400).json({ error: 'Título e conteúdo são obrigatórios' });
+    }
+
+    const content = {
       id: Date.now().toString(),
-      title: title || 'Conteúdo sem título',
-      body: body || '',
+      title,
+      body,
       type: type || 'page',
       status: status || 'draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
-    content.push(contentData);
-    writeData('content', content);
+    contents.push(content);
+    writeData('contents', contents);
 
-    res.json({ message: 'Conteúdo criado com sucesso', content: contentData });
+    res.json({ message: 'Conteúdo criado com sucesso', content });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao criar conteúdo' });
   }
 });
 
-// Obter conteúdo por ID
-router.get('/:id', (req, res) => {
+// Obter conteúdo específico
+router.get('/:id', authMiddleware, (req, res) => {
   try {
-    const content = readData('content');
-    const item = content.find(c => c.id === req.params.id);
-
-    if (!item) {
+    const contents = readData('contents');
+    const content = contents.find(c => c.id === req.params.id);
+    
+    if (!content) {
       return res.status(404).json({ error: 'Conteúdo não encontrado' });
     }
-
-    res.json(item);
+    
+    res.json(content);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter conteúdo' });
+    res.status(500).json({ error: 'Erro ao buscar conteúdo' });
   }
 });
 
 // Atualizar conteúdo
 router.put('/:id', authMiddleware, (req, res) => {
   try {
-    const content = readData('content');
-    const contentIndex = content.findIndex(c => c.id === req.params.id);
-
+    const contents = readData('contents');
+    const contentIndex = contents.findIndex(c => c.id === req.params.id);
+    
     if (contentIndex === -1) {
       return res.status(404).json({ error: 'Conteúdo não encontrado' });
     }
-
+    
     const { title, body, type, status } = req.body;
-    content[contentIndex] = {
-      ...content[contentIndex],
-      title: title || content[contentIndex].title,
-      body: body || content[contentIndex].body,
-      type: type || content[contentIndex].type,
-      status: status || content[contentIndex].status,
+    contents[contentIndex] = {
+      ...contents[contentIndex],
+      title: title || contents[contentIndex].title,
+      body: body || contents[contentIndex].body,
+      type: type || contents[contentIndex].type,
+      status: status || contents[contentIndex].status,
       updatedAt: new Date().toISOString()
     };
-
-    writeData('content', content);
-    res.json({ message: 'Conteúdo atualizado com sucesso', content: content[contentIndex] });
+    
+    writeData('contents', contents);
+    res.json({ message: 'Conteúdo atualizado com sucesso', content: contents[contentIndex] });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao atualizar conteúdo' });
   }
@@ -85,16 +90,16 @@ router.put('/:id', authMiddleware, (req, res) => {
 // Deletar conteúdo
 router.delete('/:id', authMiddleware, (req, res) => {
   try {
-    const content = readData('content');
-    const contentIndex = content.findIndex(c => c.id === req.params.id);
-
+    const contents = readData('contents');
+    const contentIndex = contents.findIndex(c => c.id === req.params.id);
+    
     if (contentIndex === -1) {
       return res.status(404).json({ error: 'Conteúdo não encontrado' });
     }
-
-    content.splice(contentIndex, 1);
-    writeData('content', content);
-
+    
+    contents.splice(contentIndex, 1);
+    writeData('contents', contents);
+    
     res.json({ message: 'Conteúdo deletado com sucesso' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao deletar conteúdo' });
