@@ -1,3 +1,4 @@
+
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -40,6 +41,7 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Erro no login:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
@@ -53,9 +55,9 @@ router.get('/verify', (req, res) => {
       return res.status(401).json({ error: 'Token não fornecido' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'sua-chave-secreta-super-secreta');
     const users = readData('users');
-    const user = users.find(u => u.id === decoded.id);
+    const user = users.find(u => u.id === decoded.userId || u.id === decoded.id);
 
     if (!user) {
       return res.status(401).json({ error: 'Usuário não encontrado' });
@@ -70,6 +72,7 @@ router.get('/verify', (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Erro na verificação do token:', error);
     res.status(401).json({ error: 'Token inválido' });
   }
 });
