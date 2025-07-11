@@ -1,4 +1,3 @@
-
 import express from "express";
 import multer from "multer";
 import path from "path";
@@ -21,7 +20,7 @@ const storage = multer.diskStorage({
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(null, "image-" + uniqueSuffix + path.extname(file.originalname));
   },
-}););
+});
 
 const upload = multer({
   storage,
@@ -42,6 +41,22 @@ router.get("/", authMiddleware, (req, res) => {
     res.json(images);
   } catch (error) {
     res.status(500).json({ error: "Erro ao listar imagens" });
+  }
+});
+
+// Obter imagem específica
+router.get("/:id", authMiddleware, (req, res) => {
+  try {
+    const images = readData("images");
+    const image = images.find((img) => img.id === req.params.id);
+
+    if (!image) {
+      return res.status(404).json({ error: "Imagem não encontrada" });
+    }
+
+    res.json(image);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao buscar imagem" });
   }
 });
 
@@ -83,12 +98,12 @@ router.put("/:id", authMiddleware, (req, res) => {
     const { id } = req.params;
     const { title, description, alt } = req.body;
     const images = readData("images");
-    
+
     const imageIndex = images.findIndex(img => img.id === id);
     if (imageIndex === -1) {
       return res.status(404).json({ error: "Imagem não encontrada" });
     }
-    
+
     images[imageIndex] = {
       ...images[imageIndex],
       title: title || images[imageIndex].title,
@@ -96,7 +111,7 @@ router.put("/:id", authMiddleware, (req, res) => {
       alt: alt || images[imageIndex].alt,
       updatedAt: new Date().toISOString()
     };
-    
+
     writeData("images", images);
     res.json({ message: "Imagem atualizada com sucesso", image: images[imageIndex] });
   } catch (error) {
@@ -109,95 +124,16 @@ router.delete("/:id", authMiddleware, (req, res) => {
   try {
     const { id } = req.params;
     const images = readData("images");
-    
+
     const imageIndex = images.findIndex(img => img.id === id);
     if (imageIndex === -1) {
       return res.status(404).json({ error: "Imagem não encontrada" });
     }
-    
+
     const image = images[imageIndex];
-    
+
     // Deletar arquivo físico
     const filePath = path.join(__dirname, "..", "uploads", "images", image.filename);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-    
-    images.splice(imageIndex, 1);
-    writeData("images", images);
-    
-    res.json({ message: "Imagem deletada com sucesso" });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao deletar imagem" });
-  }
-});
-
-export default router;
-});
-
-// Obter imagem específica
-router.get("/:id", authMiddleware, (req, res) => {
-  try {
-    const images = readData("images");
-    const image = images.find((img) => img.id === req.params.id);
-
-    if (!image) {
-      return res.status(404).json({ error: "Imagem não encontrada" });
-    }
-
-    res.json(image);
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar imagem" });
-  }
-});
-
-// Atualizar imagem
-router.put("/:id", authMiddleware, (req, res) => {
-  try {
-    const images = readData("images");
-    const imageIndex = images.findIndex((img) => img.id === req.params.id);
-
-    if (imageIndex === -1) {
-      return res.status(404).json({ error: "Imagem não encontrada" });
-    }
-
-    const { title, description, alt } = req.body;
-    images[imageIndex] = {
-      ...images[imageIndex],
-      title: title || images[imageIndex].title,
-      description: description || images[imageIndex].description,
-      alt: alt || images[imageIndex].alt,
-      updatedAt: new Date().toISOString(),
-    };
-
-    writeData("images", images);
-    res.json({
-      message: "Imagem atualizada com sucesso",
-      image: images[imageIndex],
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao atualizar imagem" });
-  }
-});
-
-// Deletar imagem
-router.delete("/:id", authMiddleware, (req, res) => {
-  try {
-    const images = readData("images");
-    const imageIndex = images.findIndex((img) => img.id === req.params.id);
-
-    if (imageIndex === -1) {
-      return res.status(404).json({ error: "Imagem não encontrada" });
-    }
-
-    const image = images[imageIndex];
-
-    // Deletar arquivo físico
-    const filePath = path.join(
-      process.cwd(),
-      "server/uploads/images",
-      image.filename,
-    );
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
