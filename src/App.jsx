@@ -13,7 +13,7 @@ export default function App() {
     setResponse(null)
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch('https://painel-admin-backend-leonardosilvas2.replit.app/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/verify', {
+      const res = await fetch('https://painel-admin-backend-leonardosilvas2.replit.app/api/auth/verify', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -123,8 +123,8 @@ export default function App() {
         <h3>Credenciais de Teste:</h3>
         <p><strong>Username:</strong> admin</p>
         <p><strong>Password:</strong> admin123</p>
-        <p><strong>Backend URL:</strong> http://localhost:5000/api</p>
-        <p><strong>Production URL:</strong> https://painel-admin-backend-leonardosilvas2.replit.app/api</p>
+        <p><strong>Current Backend:</strong> https://painel-admin-backend-leonardosilvas2.replit.app/api</p>
+        <p><strong>Local URL:</strong> http://localhost:5000/api (quando rodando localmente)</p>
       </div>
     </main>
   )
