@@ -8,3 +8,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('📝 Usuário padrão: admin');
   console.log('🔑 Senha padrão: admin123');
   console.log('⚠️  ALTERE AS CREDENCIAIS EM PRODUÇÃO!');
+});

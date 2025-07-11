@@ -26,7 +26,20 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware de segurança
 app.use(helmet());
-app.use(cors());
+
+// Configuração CORS mais específica
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://*.replit.dev',
+    'https://*.replit.app',
+    /\.replit\.dev$/,
+    /\.replit\.app$/
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -48,6 +61,15 @@ uploadDirs.forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Backend está funcionando!',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Rotas da API
