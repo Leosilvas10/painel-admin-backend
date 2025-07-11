@@ -111,17 +111,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// Debug middleware para todas as requisições
-app.use((req, res, next) => {
-  console.log(`📨 ${req.method} ${req.url}`);
-  console.log(`📨 Headers:`, JSON.stringify(req.headers, null, 2));
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log(`📨 Body:`, JSON.stringify(req.body, null, 2));
-  }
-  next();
-});
-
-// Rotas da API
+// Rotas da API - DEVEM VIR ANTES DO MIDDLEWARE DE DEBUG
 app.use("/api/auth", authRoutes);
 app.use("/api/logo", logoRoutes);
 app.use("/api/videos", videoRoutes);
@@ -132,6 +122,16 @@ app.use("/api/images", imageRoutes);
 app.use("/api/forms", formRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+
+// Debug middleware para todas as requisições
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.url}`);
+  console.log(`📨 Headers:`, JSON.stringify(req.headers, null, 2));
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log(`📨 Body:`, JSON.stringify(req.body, null, 2));
+  }
+  next();
+});
 
 // Middleware de tratamento de erros
 app.use((err, req, res, next) => {
