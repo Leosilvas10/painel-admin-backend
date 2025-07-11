@@ -10,50 +10,76 @@ router.get('/stats', authMiddleware, (req, res) => {
   try {
     const users = readData('users');
     const contents = readData('contents');
-    const blocks = readData('blocks');
-    const forms = readData('forms');
     const images = readData('images');
     const videos = readData('videos');
+    const forms = readData('forms');
+    const blocks = readData('blocks');
 
     const stats = {
       users: users.length,
       contents: contents.length,
-      blocks: blocks.length,
-      forms: forms.length,
       images: images.length,
       videos: videos.length,
-      totalUploads: images.length + videos.length
+      forms: forms.length,
+      blocks: blocks.length,
+      totalFiles: images.length + videos.length,
+      activeContents: contents.filter(c => c.status === 'published').length,
+      activeBlocks: blocks.filter(b => b.active === true).length
     };
 
     res.json(stats);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao buscar estatísticas' });
+    res.status(500).json({ error: 'Erro ao obter estatísticas' });
   }
 });
 
-// Obter dados do dashboard
-router.get('/', authMiddleware, (req, res) => {
+// Obter atividades recentes
+router.get('/activities', authMiddleware, (req, res) => {
   try {
-    const stats = {
-      users: readData('users').length,
-      contents: readData('contents').length,
-      blocks: readData('blocks').length,
-      forms: readData('forms').length,
-      images: readData('images').length,
-      videos: readData('videos').length
-    };
+    const users = readData('users');
+    const contents = readData('contents');
+    const images = readData('images');
+    const videos = readData('videos');
 
-    const recentContents = readData('contents').slice(-5);
-    const recentBlocks = readData('blocks').slice(-5);
+    const activities = [];
 
-    res.json({
-      stats,
-      recentContents,
-      recentBlocks,
-      message: 'Dashboard carregado com sucesso'
+    // Adicionar criações recentes de usuários
+    users.slice(-5).forEach(user => {
+      activities.push({
+        type: 'user_created',
+        description: `Usuário ${user.username} foi criado`,
+        timestamp: user.createdAt,
+        data: { username: user.username }
+      });
     });
+
+    // Adicionar conteúdos recentes
+    contents.slice(-5).forEach(content => {
+      activities.push({
+        type: 'content_created',
+        description: `Conteúdo "${content.title}" foi criado`,
+        timestamp: content.createdAt,
+        data: { title: content.title, type: content.type }
+      });
+    });
+
+    // Adicionar uploads recentes
+    [...images.slice(-3), ...videos.slice(-3)].forEach(file => {
+      const type = file.path.includes('/images/') ? 'image' : 'video';
+      activities.push({
+        type: `${type}_uploaded`,
+        description: `${type === 'image' ? 'Imagem' : 'Vídeo'} "${file.title}" foi enviado`,
+        timestamp: file.uploadedAt || file.createdAt,
+        data: { title: file.title, filename: file.filename }
+      });
+    });
+
+    // Ordenar por timestamp (mais recente primeiro)
+    activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    res.json(activities.slice(0, 10));
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao carregar dashboard' });
+    res.status(500).json({ error: 'Erro ao obter atividades' });
   }
 });
 
