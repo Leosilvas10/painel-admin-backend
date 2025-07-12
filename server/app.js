@@ -36,7 +36,8 @@ app.use(
       /\.replit\.app$/,
       /\.replit\.dev$/,
       "http://212.85.10.205",
-      "https://212.85.10.205"
+      "https://212.85.10.205",
+      "https://painel-admin-frontend.vercel.app" // Adicione o domínio da Vercel aqui
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
