@@ -29,15 +29,17 @@ const PORT = process.env.PORT || 5000;
 app.use(
   cors({
     origin: [
+      // Frontend principal na Vercel
+      "https://painel-admin-frontend.vercel.app",
+      // Todos os domínios de preview do Vercel (branches, PRs, etc)
+      /^https:\/\/painel-admin-frontend-.*\.vercel\.app$/,
+      // Localhost para desenvolvimento
       "http://localhost:3000",
       "http://localhost:5173",
-      "https://painel-admin-backend-leonardosilvas2.replit.app",
-      "https://workspace-leonardosilvas2.replit.app",
-      /\.replit\.app$/,
-      /\.replit\.dev$/,
+      // IP do backend (acesso direto)
       "http://212.85.10.205",
       "https://212.85.10.205",
-      "https://painel-admin-frontend.vercel.app" // Adicione o domínio da Vercel aqui
+      // Outros domínios que você queira permitir podem ser adicionados aqui
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
