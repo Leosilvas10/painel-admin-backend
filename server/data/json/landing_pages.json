@@ -6,5 +6,98 @@
     "description": "Descrição detalhada...",
     "createdAt": "2025-07-11T17:58:09.140Z",
     "updatedAt": "2025-07-11T17:58:09.140Z"
+  },
+  "jota-solucoes": {
+    "title": "Jota Soluções",
+    "subtitle": "Descubra como transformar a saúde financeira da sua empresa!",
+    "cta": "Quero meu diagnóstico gratuito",
+    "description": "Receba um diagnóstico financeiro gratuito e tenha uma reunião estratégica com o CEO da Jota Soluções.",
+    "blocos": {
+      "heroi": {
+        "destaque": "Descubra como transformar a saúde financeira da sua empresa!",
+        "cta": "Quero meu diagnóstico gratuito"
+      },
+      "dores": {
+        "itens": [
+          "Não sabe se o negócio está dando lucro",
+          "Decisões sem base nos números",
+          "Falta de clareza no planejamento",
+          "Insegurança para crescer"
+        ]
+      },
+      "solucoes": {
+        "itens": [
+          "Clareza total dos números",
+          "Metas e resultados visíveis",
+          "Decisões estratégicas",
+          "Apoio especializado"
+        ]
+      },
+      "sobre": {
+        "texto": "Somos especialistas em BPO Financeiro, ajudando pequenas e médias empresas a organizarem suas finanças e tomarem decisões mais inteligentes baseadas em dados reais. Nossa missão é transformar a gestão financeira das empresas, proporcionando clareza, controle e crescimento sustentável através de soluções personalizadas.",
+        "dados": ["500+ Empresas Atendidas", "95% Satisfação", "5+ Anos de Experiência"],
+        "ceo": {
+          "nome": "João Silva",
+          "cargo": "CEO & Fundador",
+          "frase": "Minha paixão é ajudar empresários a alcançarem seus objetivos através de uma gestão financeira eficiente e estratégica."
+        }
+      },
+      "depoimentos": {
+        "clientes": [
+          {
+            "nome": "Maria Santos",
+            "empresa": "Boutique Elegance",
+            "texto": "Após o diagnóstico da Jota Soluções, consegui ter clareza total dos meus números. Meu faturamento aumentou 40% em 6 meses!"
+          },
+          {
+            "nome": "Carlos Oliveira",
+            "empresa": "TechStart Solutions",
+            "texto": "O BPO Financeiro transformou minha empresa. Agora tomo decisões baseadas em dados, não no achismo. Recomendo!"
+          },
+          {
+            "nome": "Ana Costa",
+            "empresa": "Padaria Artesanal",
+            "texto": "Finalmente entendo se minha empresa está dando lucro. O suporte é excepcional e os resultados são visíveis!"
+          }
+        ]
+      },
+      "formulario": {
+        "campos": [
+          "Nome Completo",
+          "E-mail",
+          "Telefone (WhatsApp)",
+          "Nome da Empresa",
+          "Faturamento Mensal",
+          "Segmento de Atuação",
+          "Quantas contas bancárias sua empresa possui?"
+        ],
+        "termos": "Concordo com o tratamento dos meus dados pessoais de acordo com a Política de Privacidade e autorizo o contato para apresentação dos serviços."
+      },
+      "faq": {
+        "perguntas": [
+          "O diagnóstico é realmente gratuito?",
+          "Quanto tempo demora o diagnóstico?",
+          "Meus dados ficarão seguros?",
+          "O que está incluído no BPO Financeiro?",
+          "Vocês atendem empresas de qualquer tamanho?"
+        ]
+      },
+      "footer": {
+        "empresa": "Jota Soluções",
+        "descricao": "Especialistas em BPO Financeiro, ajudando empresas a organizarem suas finanças e crescerem com segurança.",
+        "email": "contato@jotasolucoes.com.br",
+        "telefone": "(11) 99999-9999",
+        "cidade": "São Paulo - SP",
+        "servicos": [
+          "BPO Financeiro",
+          "Diagnóstico Gratuito",
+          "Consultoria Estratégica",
+          "Controle de Fluxo de Caixa"
+        ],
+        "redes": ["twitter", "linkedin"]
+      }
+    },
+    "createdAt": "2025-07-14T17:40:00.000Z",
+    "updatedAt": "2025-07-14T17:40:00.000Z"
   }
 }
