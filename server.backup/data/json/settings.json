@@ -1,0 +1,14 @@
+{
+  "siteName": "Meu Site",
+  "siteDescription": "Descrição do meu site",
+  "contactEmail": "contato@meusite.com",
+  "socialMedia": {
+    "facebook": "",
+    "instagram": "",
+    "twitter": "",
+    "linkedin": ""
+  },
+  "theme": "light",
+  "createdAt": "2025-07-11T13:23:19.984Z",
+  "updatedAt": "2025-07-11T13:23:19.984Z"
+}
