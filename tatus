@@ -1,0 +1,22 @@
+[0;1;32m●[0m nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (]8;;file://srv905529/usr/lib/systemd/system/nginx.service/usr/lib/systemd/system/nginx.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Wed 2025-07-16 12:02:44 UTC; 1 week 2 days ago
+       Docs: ]8;;man:nginx(8)man:nginx(8)]8;;
+   Main PID: 70633 (nginx)
+      Tasks: 3 (limit: 9485)
+     Memory: 5.5M (peak: 7.4M)
+        CPU: 10.707s
+     CGroup: /system.slice/nginx.service
+             ├─[0;38;5;245m70633 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"[0m
+             ├─[0;38;5;245m73779 "nginx: worker process"[0m
+             └─[0;38;5;245m73780 "nginx: worker process"[0m
+
+Jul 16 12:02:44 srv905529 systemd[1]: Starting nginx.service - A high performance web server and a reverse proxy server...
+Jul 16 12:02:44 srv905529 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.
+Jul 16 12:58:08 srv905529 systemd[1]: Reloading nginx.service - A high performance web server and a reverse proxy server...
+Jul 16 12:58:08 srv905529 nginx[72612]: 2025/07/16 12:58:08 [emerg] 72612#72612: cannot load certificate "/etc/letsencrypt/live/api.sitedotrabalhador.com.br/fullchain.pem": BIO_new_file() failed (SSL: error:80000002:system library::No such file or directory:calling fopen(/etc/letsencrypt/live/api.sitedotrabalhador.com.br/fullchain.pem, r) error:10000080:BIO routines::no such file)
+Jul 16 12:58:08 srv905529 systemd[1]: [0;1;39m[0;1;31m[0;1;39mnginx.service: Control process exited, code=exited, status=1/FAILURE[0m
+Jul 16 12:58:08 srv905529 systemd[1]: [0;1;31m[0;1;39m[0;1;31mReload failed for nginx.service - A high performance web server and a reverse proxy server.[0m
+Jul 16 21:49:15 srv905529 systemd[1]: Reloading nginx.service - A high performance web server and a reverse proxy server...
+Jul 16 21:49:15 srv905529 nginx[73758]: 2025/07/16 21:49:15 [notice] 73758#73758: signal process started
+Jul 16 21:49:15 srv905529 systemd[1]: Reloaded nginx.service - A high performance web server and a reverse proxy server.

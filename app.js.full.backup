@@ -1,0 +1,398 @@
+import express from "express";
+import cors from "cors";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import { initializeData } from "./server/data/store.js";
+import logger from "./server/middleware/logger.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config();
+
+// Importar rotas
+import authRoutes from "./routes/auth.js";
+import logoRoutes from "./routes/logo.js";
+import videoRoutes from "./routes/videos.js";
+import contentRoutes from "./routes/content.js";
+import blockRoutes from "./routes/blocks.js";
+import settingsRoutes from "./routes/settings.js";
+import imageRoutes from "./routes/images.js";
+import formRoutes from "./routes/forms.js";
+import userRoutes from "./routes/users.js";
+import dashboardRoutes from "./routes/dashboard.js";
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// CORS APENAS para SEU servidor
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:5174",
+    "http://212.85.10.205:3000",
+    "https://www.bancojota.com.br",
+    "https://bancojota.com.br",
+    "https://www.jotasolucoes.com.br",
+    "https://jotasolucoes.com.br",
+    "https://api.jotasolucoes.com.br",
+    "http://api.jotasolucoes.com.br",
+    "https://www.metodocor.com.br",
+    "https://metodocor.com.br"
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "Cache-Control"]
+}));
+
+// ✅ CORRIGIDO: Mudou de '/*' para '*'
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cache-Control');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
+
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(logger);
+
+// Criar diretórios de upload
+const uploadDirs = ["uploads", "uploads/logos", "uploads/videos", "uploads/images"];
+uploadDirs.forEach(dir => {
+  const fullPath = path.join(__dirname, dir);
+  if (!fs.existsSync(fullPath)) {
+    fs.mkdirSync(fullPath, { recursive: true });
+  }
+});
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "OK",
+    message: "Backend funcionando perfeitamente!",
+    server: "212.85.10.205:3000",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ✅ ENDPOINT: Lista de Landing Pages para o Painel Admin
+app.get("/api/content/landing", (req, res) => {
+  try {
+    const landingPages = [
+      {
+        id: "jota-solucoes",
+        slug: "jota-solucoes",
+        title: "Jota Soluções",
+        description: "Landing page para BPO Financeiro - Diagnóstico financeiro gratuito para empresas",
+        status: "published",
+        type: "business",
+        category: "Financeiro",
+        createdAt: "2025-07-14T17:40:00.000Z",
+        updatedAt: new Date().toISOString(),
+        publishedAt: "2025-07-14T18:00:00.000Z",
+        thumbnail: "/uploads/images/jota-solucoes-thumb.jpg",
+        url: "https://jotasolucoes.com.br",
+        metaTitle: "Jota Soluções - BPO Financeiro",
+        metaDescription: "Receba um diagnóstico financeiro gratuito e transforme a saúde financeira da sua empresa",
+        keywords: ["BPO", "Financeiro", "Diagnóstico", "Empresa", "Gestão"],
+        views: 1250,
+        conversions: 89,
+        conversionRate: 7.12,
+        lastViewed: new Date().toISOString(),
+        author: "Admin",
+        sections: ["hero", "dores", "solucoes", "sobre", "depoimentos", "formulario", "faq", "footer"],
+        hasForm: true,
+        formSubmissions: 89,
+        isActive: true
+      },
+      {
+        id: "banco-jota",
+        slug: "banco-jota",
+        title: "Banco Jota",
+        description: "Landing page do Banco Jota - Soluções bancárias inovadoras e seguras",
+        status: "published",
+        type: "banking",
+        category: "Bancário",
+        createdAt: "2025-07-10T15:30:00.000Z",
+        updatedAt: new Date().toISOString(),
+        publishedAt: "2025-07-10T16:00:00.000Z",
+        thumbnail: "/uploads/images/banco-jota-thumb.jpg",
+        url: "https://bancojota.com.br",
+        metaTitle: "Banco Jota - Soluções Bancárias",
+        metaDescription: "Descubra as soluções bancárias mais inovadoras e seguras do mercado",
+        keywords: ["Banco", "Cartão", "Crédito", "Digital", "Seguro"],
+        views: 2340,
+        conversions: 156,
+        conversionRate: 6.67,
+        lastViewed: new Date().toISOString(),
+        author: "Admin",
+        sections: ["hero", "servicos", "beneficios", "depoimentos", "contato"],
+        hasForm: true,
+        formSubmissions: 156,
+        isActive: true
+      }
+    ];
+
+    // Calcular estatísticas
+    const stats = {
+      total: landingPages.length,
+      published: landingPages.filter(p => p.status === 'published').length,
+      draft: landingPages.filter(p => p.status === 'draft').length,
+      totalViews: landingPages.reduce((sum, p) => sum + p.views, 0),
+      totalConversions: landingPages.reduce((sum, p) => sum + p.conversions, 0),
+      avgConversionRate: landingPages.reduce((sum, p) => sum + p.conversionRate, 0) / landingPages.length
+    };
+
+    res.json({
+      success: true,
+      data: landingPages,
+      total: landingPages.length,
+      stats: stats,
+      message: "Landing pages listadas com sucesso",
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error("❌ Erro ao listar landing pages:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erro interno do servidor",
+      message: "Erro ao carregar landing pages",
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// ✅ ENDPOINT: Leads (listagem)
+app.get("/api/leads", (req, res) => {
+  try {
+    const { projeto } = req.query;
+
+    // Dados simulados de leads (você pode conectar com banco de dados real)
+    const allLeads = [
+      {
+        id: 1,
+        nome: "Maria Silva Santos",
+        email: "maria.santos@email.com",
+        telefone: "(11) 99999-1234",
+        empresa: "Silva & Associados",
+        faturamento: "50k-100k",
+        segmento: "consultoria",
+        contasBancarias: "2-3",
+        projeto: "jota-solucoes",
+        timestamp: "2025-07-25T10:30:00.000Z",
+        status: "novo",
+        origem: "formulario"
+      },
+      {
+        id: 2,
+        nome: "João Carlos Oliveira",
+        email: "joao.oliveira@empresa.com",
+        telefone: "(11) 88888-5678",
+        empresa: "TechStart Solutions",
+        faturamento: "100k-500k",
+        segmento: "tecnologia",
+        contasBancarias: "4-5",
+        projeto: "jota-solucoes",
+        timestamp: "2025-07-25T14:15:00.000Z",
+        status: "contatado",
+        origem: "formulario"
+      },
+      {
+        id: 3,
+        nome: "Ana Costa Lima",
+        email: "ana.costa@padaria.com",
+        telefone: "(11) 77777-9012",
+        empresa: "Padaria Artesanal",
+        faturamento: "10k-50k",
+        segmento: "comercio",
+        contasBancarias: "1",
+        projeto: "jota-solucoes",
+        timestamp: "2025-07-25T16:45:00.000Z",
+        status: "novo",
+        origem: "formulario"
+      }
+    ];
+
+    // Filtrar por projeto se especificado
+    const leads = projeto ? allLeads.filter(lead => lead.projeto === projeto) : allLeads;
+
+    res.json({
+      success: true,
+      leads: leads,
+      total: leads.length,
+      projeto: projeto || "todos",
+      message: "Leads listados com sucesso",
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error("❌ Erro ao listar leads:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erro interno do servidor"
+    });
+  }
+});
+
+// ✅ ENDPOINT: Estatísticas de leads
+app.get("/api/leads/stats", (req, res) => {
+  try {
+    const { projeto } = req.query;
+
+    // Simular estatísticas (conectar com dados reais depois)
+    const stats = {
+      total: projeto === 'jota-solucoes' ? 89 : 245,
+      hoje: projeto === 'jota-solucoes' ? 3 : 8,
+      semana: projeto === 'jota-solucoes' ? 12 : 28,
+      mes: projeto === 'jota-solucoes' ? 45 : 120,
+      conversao: projeto === 'jota-solucoes' ? 7.12 : 6.34,
+      fontes: {
+        formulario: projeto === 'jota-solucoes' ? 89 : 210,
+        organico: 0,
+        pago: 0
+      }
+    };
+
+    res.json({
+      success: true,
+      stats: stats,
+      projeto: projeto || "todos",
+      message: "Estatísticas de leads",
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error("❌ Erro ao buscar estatísticas:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erro interno do servidor"
+    });
+  }
+});
+
+// ✅ ENDPOINT: Receber leads do formulário
+app.post("/api/leads", (req, res) => {
+  try {
+    const leadData = req.body;
+
+    // Aqui você salvaria no banco de dados
+    console.log("📝 Novo lead recebido:", leadData);
+
+    // Simular salvamento
+    const newLead = {
+      id: Date.now(),
+      ...leadData,
+      timestamp: new Date().toISOString(),
+      status: "novo"
+    };
+
+    res.status(201).json({
+      success: true,
+      data: newLead,
+      message: "Lead cadastrado com sucesso!",
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error("❌ Erro ao salvar lead:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erro ao processar lead"
+    });
+  }
+});
+
+// Rotas da API
+app.use("/api/auth", authRoutes);
+app.use("/api/logo", logoRoutes);
+app.use("/api/videos", videoRoutes);
+app.use("/api/content", contentRoutes);
+app.use("/api/blocks", blockRoutes);
+app.use("/api/settings", settingsRoutes);
+app.use("/api/images", imageRoutes);
+app.use("/api/forms", formRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+
+// API info
+app.get("/api", (req, res) => {
+  res.json({
+    message: "API funcionando - SERVIDOR: 212.85.10.205:3000",
+    status: "OK",
+    endpoints: [
+      "GET /api/health",
+      "GET /api/content/landing",
+      "GET /api/content/landing/:slug",
+      "GET /api/leads",
+      "POST /api/leads",
+      "GET /api/leads/stats"
+    ],
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ✅ CORRIGIDO: 404 handler - Mudou de "/*" para "*"
+app.use("*", (req, res) => {
+  res.status(404).json({
+    error: "Rota não encontrada",
+    server: "212.85.10.205:3000",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error("❌ Erro:", err);
+  res.status(500).json({
+    error: "Erro interno",
+    server: "212.85.10.205:3000"
+  });
+});
+
+const startServer = async () => {
+  try {
+    await initializeData();
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log("🚀 Servidor iniciado");
+      console.log("📡 API disponível");
+    });
+  } catch (error) {
+    console.error("❌ Erro ao iniciar:", error);
+    process.exit(1);
+  }
+};
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  startServer();
+}
+
+export default app;
+export { startServer };
+
+// Tratamento de erros não capturados
+process.on('uncaughtException', (error) => {
+  console.error('🚨 Erro não capturado:', error);
+  // Não encerrar o processo, apenas logar
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('🚨 Promise rejeitada:', reason);
+  // Não encerrar o processo, apenas logar
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM recebido, encerrando graciosamente...');
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT recebido, encerrando graciosamente...');
+});

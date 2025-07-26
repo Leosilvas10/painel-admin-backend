@@ -11,7 +11,7 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
     "http://localhost:5174",
-    "http://212.85.10.205:3000",  
+    "http://212.85.10.205:3000",
     "https://jotasolucoes.com.br",
     "https://bancojota.com.br"
   ],
@@ -23,7 +23,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
@@ -33,7 +32,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Authentication routes
 app.post("/api/auth/login", (req, res) => {
   const { username, password } = req.body;
   if (username === "admin" && password === "admin123") {
@@ -59,48 +57,36 @@ app.post("/api/auth/logout", (req, res) => {
   res.json({ success: true, message: "Logout realizado" });
 });
 
-// ✅ ENDPOINT: Listar todas as landing pages (NECESSÁRIO PARA O FRONTEND)
 app.get("/api/content/landing", (req, res) => {
-  try {
-    console.log('📋 Listando landing pages disponíveis');
+  const landingPages = [
+    {
+      id: "jota-solucoes",
+      slug: "jota-solucoes",
+      title: "Jota Soluções",
+      description: "Landing page para BPO Financeiro",
+      status: "published",
+      createdAt: "2025-07-14T17:40:00.000Z",
+      updatedAt: new Date().toISOString(),
+      url: "https://jotasolucoes.com.br"
+    },
+    {
+      id: "banco-jota",
+      slug: "banco-jota",
+      title: "Banco Jota",
+      description: "Landing page do Banco Jota",
+      status: "published",
+      createdAt: "2025-07-10T15:30:00.000Z",
+      updatedAt: new Date().toISOString(),
+      url: "https://bancojota.com.br"
+    }
+  ];
 
-    const landingPages = [
-      {
-        id: "jota-solucoes",
-        slug: "jota-solucoes",
-        title: "Jota Soluções",
-        description: "Landing page para BPO Financeiro - Diagnóstico financeiro gratuito",
-        status: "published",
-        createdAt: "2025-07-14T17:40:00.000Z",
-        updatedAt: new Date().toISOString(),
-        url: "https://jotasolucoes.com.br"
-      },
-      {
-        id: "banco-jota",
-        slug: "banco-jota",
-        title: "Banco Jota",
-        description: "Landing page do Banco Jota - Conta digital gratuita",
-        status: "published",
-        createdAt: "2025-07-10T15:30:00.000Z",
-        updatedAt: new Date().toISOString(),
-        url: "https://bancojota.com.br"
-      }
-    ];
-
-    res.json({
-      success: true,
-      data: landingPages,
-      total: landingPages.length,
-      message: "Landing pages listadas com sucesso"
-    });
-
-  } catch (error) {
-    console.error('❌ Erro ao listar landing pages:', error);
-    res.status(500).json({
-      success: false,
-      error: "Erro ao listar landing pages"
-    });
-  }
+  res.json({
+    success: true,
+    data: landingPages,
+    total: landingPages.length,
+    message: "Landing pages listadas com sucesso"
+  });
 });
 
 // ✅ NOVO ENDPOINT ESPECÍFICO: Carregar conteúdo detalhado de uma landing page para edição
@@ -108,7 +94,8 @@ app.get("/api/content/landing/:slug", (req, res) => {
   try {
     const { slug } = req.params;
     console.log("📋 Carregando conteúdo detalhado de:", slug);
-
+    
+    // Dados específicos da Jota Soluções
     if (slug === "jota-solucoes") {
       const jotaSolucoesContent = {
         id: "jota-solucoes",
@@ -120,6 +107,8 @@ app.get("/api/content/landing/:slug", (req, res) => {
         updatedAt: new Date().toISOString(),
         publishedAt: "2025-07-14T18:00:00.000Z",
         url: "https://jotasolucoes.com.br",
+        
+        // ✅ BLOCOS EDITÁVEIS PARA O PAINEL ADMIN
         blocks: [
           {
             id: "header",
@@ -156,7 +145,7 @@ app.get("/api/content/landing/:slug", (req, res) => {
           },
           {
             id: "hero",
-            type: "hero",
+            type: "hero", 
             title: "Seção Hero",
             position: 2,
             visible: true,
@@ -183,10 +172,22 @@ app.get("/api/content/landing/:slug", (req, res) => {
                 visible: true
               },
               features: [
-                { icon: "check-circle", text: "Diagnóstico financeiro completo" },
-                { icon: "check-circle", text: "Reunião estratégica personalizada" },
-                { icon: "check-circle", text: "Análise de 450 mil empresas" },
-                { icon: "check-circle", text: "Resultados comprovados" }
+                {
+                  icon: "check-circle",
+                  text: "Diagnóstico financeiro completo"
+                },
+                {
+                  icon: "check-circle", 
+                  text: "Reunião estratégica personalizada"
+                },
+                {
+                  icon: "check-circle",
+                  text: "Análise de 450 mil empresas"
+                },
+                {
+                  icon: "check-circle",
+                  text: "Resultados comprovados"
+                }
               ],
               styles: {
                 textAlign: "center",
@@ -298,9 +299,21 @@ app.get("/api/content/landing/:slug", (req, res) => {
               headline: "Especialistas em gestão financeira empresarial",
               description: "A Jota Soluções é referência em BPO Financeiro, com mais de 10 anos de experiência ajudando empresas a organizar suas finanças e acelerar o crescimento.",
               stats: [
-                { number: "450mil+", label: "Empresas analisadas", icon: "building" },
-                { number: "95%", label: "Taxa de satisfação", icon: "heart" },
-                { number: "10+", label: "Anos de experiência", icon: "award" }
+                {
+                  number: "450mil+",
+                  label: "Empresas analisadas",
+                  icon: "building"
+                },
+                {
+                  number: "95%",
+                  label: "Taxa de satisfação",
+                  icon: "heart"
+                },
+                {
+                  number: "10+",
+                  label: "Anos de experiência",
+                  icon: "award"
+                }
               ],
               team: {
                 visible: true,
@@ -340,7 +353,7 @@ app.get("/api/content/landing/:slug", (req, res) => {
                   name: "Carlos Santos",
                   company: "Inovação Digital",
                   role: "CFO",
-                  photo: "/uploads/images/client-2.jpg",
+                  photo: "/uploads/images/client-2.jpg", 
                   rating: 5,
                   text: "Excelente atendimento e resultados surpreendentes. Recomendo para qualquer empresa que quer crescer."
                 }
@@ -358,10 +371,38 @@ app.get("/api/content/landing/:slug", (req, res) => {
               headline: "Receba seu diagnóstico financeiro gratuito",
               subheadline: "Preencha o formulário abaixo e nossa equipe entrará em contato em até 24 horas.",
               fields: [
-                { name: "nome", label: "Nome completo", type: "text", placeholder: "Digite seu nome completo", required: true },
-                { name: "email", label: "E-mail", type: "email", placeholder: "seu@email.com", required: true },
-                { name: "telefone", label: "Telefone", type: "tel", placeholder: "(11) 99999-9999", required: true },
-                { name: "empresa", label: "Nome da empresa", type: "text", placeholder: "Nome da sua empresa", required: true },
+                {
+                  name: "nome",
+                  label: "Nome completo",
+                  type: "text",
+                  placeholder: "Digite seu nome completo",
+                  required: true,
+                  validation: "text"
+                },
+                {
+                  name: "email", 
+                  label: "E-mail",
+                  type: "email",
+                  placeholder: "seu@email.com",
+                  required: true,
+                  validation: "email"
+                },
+                {
+                  name: "telefone",
+                  label: "Telefone",
+                  type: "tel", 
+                  placeholder: "(11) 99999-9999",
+                  required: true,
+                  validation: "phone"
+                },
+                {
+                  name: "empresa",
+                  label: "Nome da empresa",
+                  type: "text",
+                  placeholder: "Nome da sua empresa",
+                  required: true,
+                  validation: "text"
+                },
                 {
                   name: "faturamento",
                   label: "Faturamento mensal",
@@ -390,10 +431,20 @@ app.get("/api/content/landing/:slug", (req, res) => {
                   ]
                 }
               ],
-              submitButton: { text: "Quero meu diagnóstico gratuito", style: "primary", size: "large" },
+              submitButton: {
+                text: "Quero meu diagnóstico gratuito",
+                style: "primary",
+                size: "large"
+              },
               successMessage: "Obrigado! Recebemos suas informações e nossa equipe entrará em contato em breve.",
-              privacy: { visible: true, text: "Seus dados estão seguros conosco e não serão compartilhados com terceiros." },
-              styles: { backgroundColor: "#f8f9fa", buttonColor: "#0066cc" }
+              privacy: {
+                visible: true,
+                text: "Seus dados estão seguros conosco e não serão compartilhados com terceiros."
+              },
+              styles: {
+                backgroundColor: "#f8f9fa",
+                buttonColor: "#0066cc"
+              }
             }
           },
           {
@@ -406,9 +457,21 @@ app.get("/api/content/landing/:slug", (req, res) => {
             content: {
               headline: "Dúvidas frequentes sobre nossos serviços",
               questions: [
-                { id: 1, question: "Como funciona o diagnóstico financeiro gratuito?", answer: "Nosso diagnóstico é uma análise completa da situação financeira atual da sua empresa, identificando pontos de melhoria e oportunidades de crescimento." },
-                { id: 2, question: "Quanto tempo leva para implementar o BPO Financeiro?", answer: "A implementação varia de acordo com o tamanho e complexidade da empresa, mas geralmente leva entre 2 a 4 semanas para estar totalmente operacional." },
-                { id: 3, question: "Quais relatórios são fornecidos?", answer: "Fornecemos relatórios de fluxo de caixa, DRE, balanço patrimonial, análises de indicadores financeiros e dashboards personalizados." }
+                {
+                  id: 1,
+                  question: "Como funciona o diagnóstico financeiro gratuito?",
+                  answer: "Nosso diagnóstico é uma análise completa da situação financeira atual da sua empresa, identificando pontos de melhoria e oportunidades de crescimento."
+                },
+                {
+                  id: 2,
+                  question: "Quanto tempo leva para implementar o BPO Financeiro?",
+                  answer: "A implementação varia de acordo com o tamanho e complexidade da empresa, mas geralmente leva entre 2 a 4 semanas para estar totalmente operacional."
+                },
+                {
+                  id: 3,
+                  question: "Quais relatórios são fornecidos?",
+                  answer: "Fornecemos relatórios de fluxo de caixa, DRE, balanço patrimonial, análises de indicadores financeiros e dashboards personalizados."
+                }
               ]
             }
           },
@@ -425,7 +488,11 @@ app.get("/api/content/landing/:slug", (req, res) => {
                 description: "Especialistas em BPO Financeiro e gestão empresarial.",
                 logo: "/uploads/images/jota-solucoes-logo-white.png"
               },
-              contact: { email: "contato@jotasolucoes.com.br", phone: "(11) 99999-9999", address: "São Paulo, SP" },
+              contact: {
+                email: "contato@jotasolucoes.com.br",
+                phone: "(11) 99999-9999",
+                address: "São Paulo, SP"
+              },
               links: [
                 { label: "Política de Privacidade", url: "/privacidade" },
                 { label: "Termos de Uso", url: "/termos" }
@@ -438,12 +505,16 @@ app.get("/api/content/landing/:slug", (req, res) => {
             }
           }
         ],
+        
+        // ✅ METADADOS SEO
         seo: {
-          metaTitle: "Jota Soluções - BPO Financeiro | Diagnóstico gratuito",
+          metaTitle: "Jota Soluções - BPO Financeiro | Diagnóstico Gratuito",
           metaDescription: "Transforme a gestão financeira da sua empresa com nosso BPO Financeiro especializado. Diagnóstico gratuito e resultados comprovados.",
           keywords: ["BPO", "Financeiro", "Consultoria", "Gestão", "Diagnóstico", "Fluxo de caixa"],
           ogImage: "/uploads/images/og-jota-solucoes.jpg"
         },
+        
+        // ✅ CONFIGURAÇÕES DE DESIGN
         settings: {
           theme: "corporate",
           primaryColor: "#0066cc",
@@ -454,18 +525,19 @@ app.get("/api/content/landing/:slug", (req, res) => {
           borderRadius: "8px"
         }
       };
-
+      
       res.json({
         success: true,
         data: jotaSolucoesContent,
         message: "Conteúdo da Jota Soluções carregado com sucesso",
         timestamp: new Date().toISOString()
       });
-
+      
     } else if (slug === "banco-jota") {
+      // Dados do Banco Jota
       const bancoJotaContent = {
         id: "banco-jota",
-        slug: "banco-jota",
+        slug: "banco-jota", 
         title: "Banco Jota",
         description: "Landing page do Banco Jota - Conta digital gratuita",
         status: "published",
@@ -473,6 +545,7 @@ app.get("/api/content/landing/:slug", (req, res) => {
         updatedAt: new Date().toISOString(),
         publishedAt: "2025-07-10T16:00:00.000Z",
         url: "https://bancojota.com.br",
+        
         blocks: [
           {
             id: "header",
@@ -494,18 +567,18 @@ app.get("/api/content/landing/:slug", (req, res) => {
                 { label: "Conta Digital", url: "#conta", active: true },
                 { label: "Contato", url: "#contato", active: true }
               ],
-              ctaButton: { text: "Abrir conta grátis", url: "#conta", style: "primary", visible: true },
-              styles: {
-                backgroundColor: "#6c5ce7",
-                textColor: "#ffffff",
-                logoPosition: "left"
+              ctaButton: {
+                text: "Abrir conta grátis",
+                url: "#conta",
+                style: "primary",
+                visible: true
               }
             }
           },
           {
             id: "hero",
             type: "hero",
-            title: "Seção Hero",
+            title: "Seção Hero", 
             position: 2,
             visible: true,
             editable: true,
@@ -513,60 +586,55 @@ app.get("/api/content/landing/:slug", (req, res) => {
               headline: "O banco digital que revoluciona suas finanças",
               subheadline: "Conta digital gratuita, cartão sem anuidade e investimentos com rentabilidade superior.",
               description: "Junte-se a milhares de clientes que já descobriram a liberdade financeira.",
-              backgroundImage: { 
-                src: "/uploads/images/hero-bg-banco.jpg", 
-                alt: "Background Banco Jota", 
-                overlay: 0.5 
+              backgroundImage: {
+                src: "/uploads/images/hero-bg-banco.jpg",
+                alt: "Background Banco Jota",
+                overlay: 0.5
               },
-              ctaButton: { 
-                text: "Abrir conta grátis", 
-                url: "#conta", 
-                style: "primary", 
-                size: "large" 
-              },
-              secondaryButton: {
-                text: "Saiba mais",
-                url: "#produtos",
-                style: "outline",
-                visible: true
+              ctaButton: {
+                text: "Abrir conta grátis",
+                url: "#conta",
+                style: "primary",
+                size: "large"
               },
               features: [
-                { icon: "credit-card", text: "Cartão sem anuidade" },
-                { icon: "smartphone", text: "App intuitivo e seguro" },
-                { icon: "trending-up", text: "Investimentos rentáveis" },
-                { icon: "shield", text: "Segurança garantida" }
-              ],
-              styles: {
-                textAlign: "center",
-                headlineColor: "#ffffff",
-                subheadlineColor: "#f8f9fa",
-                buttonColor: "#6c5ce7"
-              }
+                {
+                  icon: "credit-card",
+                  text: "Cartão sem anuidade"
+                },
+                {
+                  icon: "smartphone",
+                  text: "App intuitivo e seguro"
+                },
+                {
+                  icon: "trending-up",
+                  text: "Investimentos rentáveis"
+                }
+              ]
             }
           }
         ],
+        
         seo: {
           metaTitle: "Banco Jota - Conta Digital Gratuita",
           metaDescription: "Banco digital com conta gratuita, cartão sem anuidade e investimentos rentáveis. Abra sua conta agora!"
         },
-        settings: { 
-          theme: "modern", 
-          primaryColor: "#6c5ce7", 
-          secondaryColor: "#a29bfe", 
-          accentColor: "#fd79a8",
-          fontFamily: "Poppins, sans-serif",
-          containerWidth: "1200px",
-          borderRadius: "12px"
+        
+        settings: {
+          theme: "modern",
+          primaryColor: "#6c5ce7",
+          secondaryColor: "#a29bfe",
+          fontFamily: "Poppins, sans-serif"
         }
       };
-
+      
       res.json({
         success: true,
         data: bancoJotaContent,
         message: "Conteúdo do Banco Jota carregado com sucesso",
         timestamp: new Date().toISOString()
       });
-
+      
     } else {
       res.status(404).json({
         success: false,
@@ -574,7 +642,7 @@ app.get("/api/content/landing/:slug", (req, res) => {
         message: `Conteúdo para "${slug}" não disponível`
       });
     }
-
+    
   } catch (error) {
     console.error("❌ Erro ao carregar conteúdo:", error);
     res.status(500).json({
@@ -589,49 +657,61 @@ app.put("/api/content/landing/:slug/blocks/:blockId", (req, res) => {
   try {
     const { slug, blockId } = req.params;
     const { content } = req.body;
-
+    
     console.log(`📝 Atualizando bloco ${blockId} da landing page ${slug}`);
-
+    
+    // Simular atualização (aqui você salvaria no banco de dados)
     res.json({
       success: true,
       message: `Bloco ${blockId} atualizado com sucesso`,
-      data: { blockId, content, updatedAt: new Date().toISOString() }
+      data: {
+        blockId,
+        content,
+        updatedAt: new Date().toISOString()
+      }
     });
+    
   } catch (error) {
     console.error("❌ Erro ao atualizar bloco:", error);
-    res.status(500).json({ success: false, error: "Erro ao atualizar bloco" });
+    res.status(500).json({
+      success: false,
+      error: "Erro ao atualizar bloco"
+    });
   }
 });
 
-// 📝 Leads (mock)
 app.get("/api/leads", (req, res) => {
-  res.json({ success: true, leads: [], total: 0, message: "Leads carregados" });
+  res.json({
+    success: true,
+    leads: [],
+    total: 0,
+    message: "Leads carregados"
+  });
 });
 
 app.post("/api/leads", (req, res) => {
-  res.json({ success: true, message: "Lead recebido com sucesso!" });
+  res.json({
+    success: true,
+    message: "Lead recebido com sucesso!"
+  });
 });
 
-// 📝 Rota de índice – documentação rápida
 app.get("/api", (req, res) => {
   res.json({
     message: "API Funcional - 212.85.10.205:3000",
     status: "OK",
     endpoints: [
-      "GET  /api/health",
+      "GET /api/health",
       "POST /api/auth/login",
-      "GET  /api/auth/verify",
-      "POST /api/auth/logout",
-      "GET  /api/content/landing",
-      "GET  /api/content/landing/:slug",
-      "PUT  /api/content/landing/:slug/blocks/:blockId",
-      "GET  /api/leads",
-      "POST /api/leads"
+      "GET /api/content/landing",
+      "GET /api/content/landing/:slug",
+      "PUT /api/content/landing/:slug/blocks/:blockId",
+      "GET /api/leads"
     ]
   });
 });
 
-// Boot do servidor
+// ✅ FUNÇÃO startServer (NECESSÁRIA PARA server/start.js)
 const startServer = async () => {
   try {
     app.listen(PORT, "0.0.0.0", () => {
@@ -646,9 +726,11 @@ const startServer = async () => {
   }
 };
 
+// ✅ INICIALIZAÇÃO DIRETA
 if (import.meta.url === `file://${process.argv[1]}`) {
   startServer();
 }
 
+// ✅ EXPORTS NECESSÁRIOS (PARA server/start.js)
 export default app;
 export { startServer };
